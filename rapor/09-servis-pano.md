@@ -67,5 +67,5 @@ Grafana 11.3, `docker compose --profile servis-ts up -d` ile açılıyor: http:/
 Akış panellerinde bir olay, Kafka'ya varışından en geç 13–16 sn sonra veritabanında oluyor (bölüm 8.3, yerel checkpoint ile ölçüldü). Panonun 10 sn'lik yenilemesiyle birlikte ekrana en geç ~26 sn'de geliyor; kartın sınırı 30 sn. Toplu paneller ancak toplu iş ve `is/servis_yukle.py` yeniden çalıştırılınca değişiyor.
 
 Ekran görüntüleri:
-- `kanit/grafana-pano.png`: normal çalışma.
+- `kanit/grafana-pano.png`: normal çalışma (üretici `--hiz 50`). Akış 2 boş, yani bütün sensörlerden olay geliyor. Toplu panellerde 14 günlük sonuçlar var.
 - `kanit/kirilma-deneyi-kafka-grafana.png`: Kafka durdurulduğunda. Akış 2 panelinde bütün sensörler susmuş görünüyor, zaman serisi 23:55'te kesiliyor (bölüm 11).
