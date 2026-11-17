@@ -80,3 +80,73 @@ tarih,olcum,deger,birim,yontem,tekrar,not
 2026-11-17,z7_parquet_kesme_sonrasi_veri_dosyasi,0,dosya,atomik_deney.py: surum=2 overwrite yazilirken kill -9; sonra listeleme,1,"eski 64 dosya silinmis, 20 dosya _temporary altinda; okuma UNABLE_TO_INFER_SCHEMA hatasi"
 2026-11-17,z7_delta_tam_yazma,41.4,saniye,"atomik_deney.py hazirla, 64 dosya",1,
 2026-11-17,z7_parquet_tam_yazma,16.6,saniye,"atomik_deney.py hazirla, 64 dosya",1,
+2026-11-17,z8_uretici_acksall_sure,5.44,saniye,"uretici --toplu yok, 97762 olay tek konuya, acks=all, idempotent acik",3,"kafkadaki mesaj 293871 (3 kosu), fark yok"
+2026-11-17,z8_uretici_acks1_sure,5.41,saniye,"uretici --toplu yok, 97762 olay tek konuya, acks=1 (idempotent acks=all gerektirdigi icin kapali)",3,"kafkadaki mesaj 293871 (3 kosu), fark yok"
+2026-11-17,z8_uretici_acks1-idk_sure,5.40,saniye,"uretici --toplu yok, 97762 olay tek konuya, acks=1, idempotent kapali",3,"kafkadaki mesaj 293871 (3 kosu), fark yok"
+2026-11-17,z8_uretici_acks0_sure,5.41,saniye,"uretici --toplu yok, 97762 olay tek konuya, acks=0, idempotent kapali",3,"kafkadaki mesaj 293871 (3 kosu), fark yok"
+2026-11-17,z6_p99_q1_sensor_son10dk,1.30,ms,"pgbench -l, 1000 sorgu, akis isi yazarken",1,"p50 0.25, p95 0.55, max 20.86 ms"
+2026-11-17,z6_p99_q2_sensor_gecmis_10dk,8.29,ms,"pgbench -l, 1000 sorgu, akis isi yazarken",1,"p50 2.03, p95 5.48, max 18.68 ms"
+2026-11-17,z6_p99_q3_anomali_son10dk,0.75,ms,"pgbench -l, 1000 sorgu, akis isi yazarken",1,"p50 0.41, p95 0.58, max 8.93 ms"
+2026-11-17,z6_p99_q4_susan_sensorler,11.34,ms,"pgbench -l, 1000 sorgu, akis isi yazarken",1,"p50 1.55, p95 6.74, max 37.50 ms"
+2026-11-17,z6_p99_q5_bolge_saatlik,2.61,ms,"pgbench -l, 1000 sorgu, akis isi yazarken",1,"p50 0.17, p95 0.89, max 27.02 ms"
+2026-11-17,z6_p99_q6_dakika_basina_olay_1saat,9.45,ms,"pgbench -l, 1000 sorgu, akis isi yazarken",1,"p50 0.61, p95 3.79, max 27.61 ms"
+2026-11-17,z11_kafka_durdu_akis_isi_durumu,oldu,-,kirilma_kafka.sh: Kafka 90 s durduruldu,1,60 s sonra TimeoutException (partition position); Kafka donunce kendiliginden devam etmedi
+2026-11-17,z11_kafka_durdu_susan_sensor,200,sensor,"susan_sensorler gorunumu, kesintinin 90. saniyesi",1,pano 200 sensorun hepsini susan gosterdi
+2026-11-17,z11_kafka_kurtarma_yakalanan_olay,24577,olay,ayni checkpoint ile yeniden baslatma: batch 10 (543) + batch 11 (24034),1,batch 11 suresi 20.3 s
+2026-11-17,z8_yeniden_baslatma_bekleme,60,saniye,yeniden_baslatma_deneyi.sh: kill -9 sonra 60 s bekleyip ayni checkpoint ile baslatma,1,"kayip 0, tekrar 0"
+2026-11-17,z8_cokme_batch8_yazim_sayisi,2,yazim,cokme_deneyi.sh --cokme-batch 8: DB commit sonrasi os._exit; batch_gunlugu,1,"satir {194,194}; tablo Kafka ile birebir"
+2026-11-17,z11_yerel_50_yigin_suresi_max,4.4,saniye,"tepe_yuk_deneyi.sh, uretici --hiz 50, tetik 10 seconds; Spark ilerleme triggerExecution",18,ortalama 2.0 s
+2026-11-17,z11_yerel_50_islem_hizi_ort,255,olay/saniye,"tepe_yuk_deneyi.sh, uretici --hiz 50, tetik 10 seconds; Spark processedRowsPerSecond",18,
+2026-11-17,z8_uyari_gecikmesi_yerel_50_ust_ortanca,12.1,saniye,"tepe_yuk_deneyi.sh, uretici --hiz 50, tetik 10 seconds; batch_gunlugu yazilma(N)-max_varis(N-1)",17,"max 13.4 s, p95 12.9 s"
+2026-11-17,z11_yerel_8000_yigin_suresi_max,5.7,saniye,"tepe_yuk_deneyi.sh, uretici --hiz 8000, tetik 10 seconds; Spark ilerleme triggerExecution",10,ortalama 4.2 s
+2026-11-17,z11_yerel_8000_islem_hizi_ort,15752,olay/saniye,"tepe_yuk_deneyi.sh, uretici --hiz 8000, tetik 10 seconds; Spark processedRowsPerSecond",10,
+2026-11-17,z8_uyari_gecikmesi_yerel_8000_ust_ortanca,14.7,saniye,"tepe_yuk_deneyi.sh, uretici --hiz 8000, tetik 10 seconds; batch_gunlugu yazilma(N)-max_varis(N-1)",10,"max 16.1 s, p95 16.1 s"
+2026-11-17,z11_yerel_kafka_mesaj,710381,mesaj,"konu akis-yerel, toplu okuma",1,"gecerli 710109, tekrarsiz 708602, gec(>5s) 35308"
+2026-11-17,z11_yerel_deney_yerel_sayima_girmeyen,0,olay,tekrarsiz Kafka olayi (708602) - tablodaki olay_sayisi toplami (708602),1,oran %0.000
+2026-11-17,z8_cokme_kafka_mesaj,11701,mesaj,"konu akis-cokme, toplu okuma",1,"gecerli 11693, tekrarsiz 11674, gec(>5s) 0"
+2026-11-17,z8_cokme_deney_cokme_sayima_girmeyen,0,olay,tekrarsiz Kafka olayi (11674) - tablodaki olay_sayisi toplami (11674),1,oran %0.000
+2026-11-17,z8_cokme_deney_cokme_pencere_eksik_fazla,eksik 0 / fazla 0,olay,sensor x 1 dk pencere bazinda tablo ile Kafka'dan hesaplanan dogru deger,1,995 pencere
+2026-11-17,z8_cokme_yerel_kafka_mesaj,11692,mesaj,"konu akis-cokme-yerel, toplu okuma",1,"gecerli 11683, tekrarsiz 11665, gec(>5s) 0"
+2026-11-17,z8_cokme_yerel_deney_cokme_yerel_sayima_girmeyen,0,olay,tekrarsiz Kafka olayi (11665) - tablodaki olay_sayisi toplami (11665),1,oran %0.000
+2026-11-17,z8_cokme_yerel_deney_cokme_yerel_pencere_eksik_fazla,eksik 0 / fazla 0,olay,sensor x 1 dk pencere bazinda tablo ile Kafka'dan hesaplanan dogru deger,1,992 pencere
+2026-11-17,z8_gec-30_kafka_mesaj,14660,mesaj,"konu akis-gec-30, toplu okuma",1,"gecerli 14655, tekrarsiz 14629, gec(>5s) 4395"
+2026-11-17,z8_gec-30_deney_gec_30_wm120_sayima_girmeyen,0,olay,tekrarsiz Kafka olayi (14629) - tablodaki olay_sayisi toplami (14629),1,oran %0.000
+2026-11-17,z8_gec-30_deney_gec_30_wm30_sayima_girmeyen,3374,olay,tekrarsiz Kafka olayi (14629) - tablodaki olay_sayisi toplami (11255),1,oran %23.064
+2026-11-17,z8_gec-50_kafka_mesaj,14562,mesaj,"konu akis-gec-50, toplu okuma",1,"gecerli 14553, tekrarsiz 14524, gec(>5s) 7223"
+2026-11-17,z8_gec-50_deney_gec_50_wm120_sayima_girmeyen,0,olay,tekrarsiz Kafka olayi (14524) - tablodaki olay_sayisi toplami (14524),1,oran %0.000
+2026-11-17,z8_gec-50_deney_gec_50_wm30_sayima_girmeyen,5618,olay,tekrarsiz Kafka olayi (14524) - tablodaki olay_sayisi toplami (8906),1,oran %38.681
+2026-11-17,z8_gec-5dk_kafka_mesaj,14630,mesaj,"konu akis-gec-5dk, toplu okuma",1,"gecerli 14621, tekrarsiz 14593, gec(>5s) 758"
+2026-11-17,z8_gec-5dk_deney_gec_5dk_wm120_sayima_girmeyen,437,olay,tekrarsiz Kafka olayi (14593) - tablodaki olay_sayisi toplami (14156),1,oran %2.995
+2026-11-17,z8_gec-5dk_deney_gec_5dk_wm30_sayima_girmeyen,684,olay,tekrarsiz Kafka olayi (14593) - tablodaki olay_sayisi toplami (13909),1,oran %4.687
+2026-11-17,z8_gec_kart_kafka_mesaj,14702,mesaj,"konu akis-gec-kart, toplu okuma",1,"gecerli 14693, tekrarsiz 14664, gec(>5s) 763"
+2026-11-17,z8_gec_kart_deney_gec_kart_wm120_sayima_girmeyen,0,olay,tekrarsiz Kafka olayi (14664) - tablodaki olay_sayisi toplami (14664),1,oran %0.000
+2026-11-17,z8_gec_kart_deney_gec_kart_wm30_sayima_girmeyen,606,olay,tekrarsiz Kafka olayi (14664) - tablodaki olay_sayisi toplami (14058),1,oran %4.133
+2026-11-17,z11_tetik5_50_yigin_suresi_max,14.8,saniye,"tepe_yuk_deneyi.sh, uretici --hiz 50, tetik 5 seconds; Spark ilerleme triggerExecution",15,ortalama 12.6 s
+2026-11-17,z11_tetik5_50_islem_hizi_ort,45,olay/saniye,"tepe_yuk_deneyi.sh, uretici --hiz 50, tetik 5 seconds; Spark processedRowsPerSecond",15,
+2026-11-17,z8_uyari_gecikmesi_tetik5_50_ust_ortanca,25.8,saniye,"tepe_yuk_deneyi.sh, uretici --hiz 50, tetik 5 seconds; batch_gunlugu yazilma(N)-max_varis(N-1)",14,"max 29.3 s, p95 28.6 s"
+2026-11-17,z11_tetik5_kafka_mesaj,8758,mesaj,"konu akis-tetik5, toplu okuma",1,"gecerli 8754, tekrarsiz 8737, gec(>5s) 433"
+2026-11-17,z11_tetik5_deney_tetik5_sayima_girmeyen,0,olay,tekrarsiz Kafka olayi (8737) - tablodaki olay_sayisi toplami (8737),1,oran %0.000
+2026-11-17,z8_yeniden_kafka_mesaj,17560,mesaj,"konu akis-yeniden, toplu okuma",1,"gecerli 17544, tekrarsiz 17513, gec(>5s) 0"
+2026-11-17,z8_yeniden_deney_yeniden_sayima_girmeyen,0,olay,tekrarsiz Kafka olayi (17513) - tablodaki olay_sayisi toplami (17513),1,oran %0.000
+2026-11-17,z8_yeniden_deney_yeniden_pencere_eksik_fazla,eksik 0 / fazla 0,olay,sensor x 1 dk pencere bazinda tablo ile Kafka'dan hesaplanan dogru deger,1,1393 pencere
+2026-11-17,z8_yeniden_s3_pencere_eksik_fazla_cift,eksik 0 / fazla 0 / cift pencere 0,olay,append ciktisinda kesinlesmis pencereler ile Kafka'dan hesaplanan dogru deger,1,796 pencere
+2026-11-17,z11_kafka_kurtarma_kafka_mesaj,29368,mesaj,"konu sensorler, toplu okuma",1,"gecerli 29354, tekrarsiz 29290, gec(>5s) 1496"
+2026-11-17,z11_kafka_kurtarma_sensor_dakika_sayima_girmeyen,0,olay,tekrarsiz Kafka olayi (29290) - tablodaki olay_sayisi toplami (29290),1,oran %0.000
+2026-11-17,z11_kafka_kurtarma_sensor_dakika_pencere_eksik_fazla,eksik 0 / fazla 0,olay,sensor x 1 dk pencere bazinda tablo ile Kafka'dan hesaplanan dogru deger,1,2262 pencere
+2026-11-17,z11_kafka_durdu_kafka_mesaj,29368,mesaj,"konu sensorler, toplu okuma",1,"gecerli 29354, tekrarsiz 29290, gec(>5s) 1496"
+2026-11-17,z11_kafka_durdu_sensor_dakika_sayima_girmeyen,24511,olay,tekrarsiz Kafka olayi (29290) - tablodaki olay_sayisi toplami (4779),1,oran %83.684
+2026-11-17,z11_kafka_durdu_sensor_dakika_pencere_eksik_fazla,eksik 24511 / fazla 0,olay,sensor x 1 dk pencere bazinda tablo ile Kafka'dan hesaplanan dogru deger,1,2262 pencere
+2026-11-17,z11_tepe_50_yigin_suresi_max,16.1,saniye,"tepe_yuk_deneyi.sh, uretici --hiz 50, tetik 10 s; Spark ilerleme triggerExecution",14,ortalama 12.3 s
+2026-11-17,z11_tepe_50_islem_hizi_ort,51,olay/saniye,"tepe_yuk_deneyi.sh, uretici --hiz 50, tetik 10 s; Spark processedRowsPerSecond",14,
+2026-11-17,z8_uyari_gecikmesi_50_ust_ortanca,24.9,saniye,"tepe_yuk_deneyi.sh, uretici --hiz 50, tetik 10 s; batch_gunlugu yazilma(N)-max_varis(N-1)",13,"max 29.9 s, p95 29.5 s"
+2026-11-17,z11_tepe_2000_yigin_suresi_max,21.0,saniye,"tepe_yuk_deneyi.sh, uretici --hiz 2000, tetik 10 s; Spark ilerleme triggerExecution",6,ortalama 15.7 s
+2026-11-17,z11_tepe_2000_islem_hizi_ort,1683,olay/saniye,"tepe_yuk_deneyi.sh, uretici --hiz 2000, tetik 10 s; Spark processedRowsPerSecond",6,
+2026-11-17,z8_uyari_gecikmesi_2000_ust_ortanca,30.5,saniye,"tepe_yuk_deneyi.sh, uretici --hiz 2000, tetik 10 s; batch_gunlugu yazilma(N)-max_varis(N-1)",6,"max 37.5 s, p95 37.5 s"
+2026-11-17,z11_tepe_4000_yigin_suresi_max,14.0,saniye,"tepe_yuk_deneyi.sh, uretici --hiz 4000, tetik 10 s; Spark ilerleme triggerExecution",9,ortalama 11.4 s
+2026-11-17,z11_tepe_4000_islem_hizi_ort,3559,olay/saniye,"tepe_yuk_deneyi.sh, uretici --hiz 4000, tetik 10 s; Spark processedRowsPerSecond",9,
+2026-11-17,z8_uyari_gecikmesi_4000_ust_ortanca,23.2,saniye,"tepe_yuk_deneyi.sh, uretici --hiz 4000, tetik 10 s; batch_gunlugu yazilma(N)-max_varis(N-1)",9,"max 27.2 s, p95 27.2 s"
+2026-11-17,z11_tepe_8000_yigin_suresi_max,16.2,saniye,"tepe_yuk_deneyi.sh, uretici --hiz 8000, tetik 10 s; Spark ilerleme triggerExecution",8,ortalama 14.1 s
+2026-11-17,z11_tepe_8000_islem_hizi_ort,6178,olay/saniye,"tepe_yuk_deneyi.sh, uretici --hiz 8000, tetik 10 s; Spark processedRowsPerSecond",8,
+2026-11-17,z8_uyari_gecikmesi_8000_ust_ortanca,28.7,saniye,"tepe_yuk_deneyi.sh, uretici --hiz 8000, tetik 10 s; batch_gunlugu yazilma(N)-max_varis(N-1)",8,"max 31.5 s, p95 31.5 s"
+2026-11-17,z11_tepe_kafka_mesaj,1236431,mesaj,"konu akis-tepe, toplu okuma",1,"gecerli 1235948, tekrarsiz 1233403, gec(>5s) 61372"
+2026-11-17,z11_tepe_deney_tepe_sayima_girmeyen,0,olay,tekrarsiz Kafka olayi (1233403) - tablodaki olay_sayisi toplami (1233403),1,oran %0.000

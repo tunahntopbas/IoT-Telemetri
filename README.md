@@ -8,6 +8,23 @@ Bu depo, ders kitinin (`sumeyyekaynak/bsm461-proje-kit`) bir kopyasıdır. Kitin
 |---|---|---|---|---|
 | `docker-compose.yml` | `s3` servisinin `healthcheck` komutu | `wget ... http://localhost:9333/cluster/status` | `wget ... http://127.0.0.1:9333/cluster/status` | Kapsayıcıdaki `wget`, `localhost` adını IPv6 `::1` adresine çözüyor; SeaweedFS ise yalnızca IPv4 dinliyor. Bu yüzden Apple M1'de `s3` kapsayıcısı sürekli `unhealthy` kalıyor, ona bağlı `spark`, `araclar` ve `s3-kur` hiç başlamıyordu. |
 | `araclar/Dockerfile` | `pip install` listesi | — | `matplotlib==3.9.2` eklendi | `analiz/grafikler.py` grafikleri araclar kapsayıcısında çiziyor. Değişiklikten sonra imaj bir kez yeniden kurulmalı: `docker compose build araclar && docker compose up -d araclar`. |
+| `docker-compose.yml` | yeni `servis-ts` profili | — | `timescaledb` (PostgreSQL 16 + TimescaleDB 2.17, port 5433) ve `grafana` (11.3, port 3000) servisleri, `ts-veri` ve `grafana-veri` birimleri | Servis deposu ve pano olarak bunları seçtik (rapor bölüm 9). 5432 yerine 5433: bilgisayarda başka bir PostgreSQL 5432'yi kullanıyor. Bellek sınırı 512 MB ve 256 MB. |
+| `spark-defaults.conf` | `spark.jars.packages` | Kafka ve Delta paketleri | `org.postgresql:postgresql:42.7.4` eklendi | Akış işi sonuçları JDBC ile TimescaleDB'ye yazıyor. |
+| `is/akis_iskelet.py` | bütün dosya | iskelet | gerçek akış işi | Kafka → watermark → tekrar ayıklama → 1 dk pencere → TimescaleDB upsert (rapor bölüm 8). Kitteki `--sablon` seçeneği duruyor. |
+
+### Bizim hattımızı çalıştırmak
+
+```bash
+docker compose up -d                                   # çekirdek kit
+docker compose --profile servis-ts up -d               # TimescaleDB + Grafana (şema ilk açılışta kurulur)
+docker compose exec araclar python araclar/uretici.py --grup G221210024 --sablon iot --toplu 3000000 --gun 14
+docker compose exec spark spark-submit is/toplu_is.py           # toplu hat → Delta (s3a://tablolar/iot)
+docker compose exec spark spark-submit is/servis_yukle.py       # toplu sonuçlar ve geçmiş → TimescaleDB
+docker compose exec spark spark-submit is/akis_iskelet.py       # akış işi (açık kalır)
+docker compose exec araclar python araclar/uretici.py --grup G221210024 --sablon iot --hiz 50   # ayrı terminalde
+```
+
+Pano: http://localhost:3000 (giriş gerekmez). Deney betikleri `analiz/` altında, çıktıları `kanit/` altında. Bütün ölçümler `kanit/olcumler.csv` dosyasında.
 
 
 Bu kit, dönem projesinde kullanacağınız bütün altyapıyı **tek komutla** bilgisayarınızda ayağa kaldırır:
