@@ -4,6 +4,7 @@
 #   docker compose --profile arama up -d          # + Elasticsearch   (şablon 1 ve 4)
 #   docker compose --profile arama --profile pano up -d   # + Kibana  (şablon 1)
 #   docker compose --profile servis up -d         # + MongoDB         (servis deposu örneği, H8)
+#   docker compose --profile servis-ts up -d      # + TimescaleDB + Grafana (bizim servis deposu ve pano)
 #   ./dogrula.sh                                  # her şey ayakta mı?
 #   docker compose down                           # durdur (veri durur)
 #   docker compose down -v                        # durdur ve BÜTÜN veriyi sil
@@ -159,9 +160,56 @@ services:
     volumes:
       - mongo-veri:/data/db
 
+  # ── Servis deposu: PostgreSQL 16 + TimescaleDB (proje kararı, Z6) ─────────
+  # 5432 bilgisayarda başka bir PostgreSQL tarafından kullanılabilir; bu yüzden dışarıya 5433 açılıyor.
+  timescaledb:
+    image: timescale/timescaledb:2.17.2-pg16
+    container_name: bsm461-timescaledb
+    profiles: ["servis-ts"]
+    environment:
+      POSTGRES_USER: iot
+      POSTGRES_PASSWORD: iot-gizli        # yalnızca yerel geliştirme için
+      POSTGRES_DB: telemetri
+      TIMESCALEDB_TELEMETRY: "off"
+      TS_TUNE_MEMORY: "512MB"
+    ports:
+      - "5433:5432"          # psql -h localhost -p 5433 -U iot telemetri
+    volumes:
+      - ts-veri:/var/lib/postgresql/data
+      - ./servis/sema.sql:/docker-entrypoint-initdb.d/10-sema.sql:ro
+    mem_limit: 512m
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U iot -d telemetri -h 127.0.0.1"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  # ── Pano: Grafana (Z9) ─────────────────────────────────────────────────────
+  grafana:
+    image: grafana/grafana-oss:11.3.1
+    container_name: bsm461-grafana
+    profiles: ["servis-ts"]
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"           # yerelde giriş ekranı olmadan izlemek için
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      GF_SECURITY_ADMIN_PASSWORD: admin-gizli     # yalnızca yerel geliştirme için
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /etc/grafana/provisioning/dashboards/iot-telemetri.json
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+    ports:
+      - "3000:3000"          # http://localhost:3000
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - grafana-veri:/var/lib/grafana
+    mem_limit: 256m
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+
 volumes:
   mongo-veri:
   kafka-veri:
   s3-veri:
   spark-ivy:
   es-veri:
+  ts-veri:
+  grafana-veri:

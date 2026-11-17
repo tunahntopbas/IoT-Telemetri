@@ -1,0 +1,301 @@
+{
+  "uid": "iot-telemetri",
+  "title": "IoT Telemetri — G221210024",
+  "tags": [
+    "bsm461"
+  ],
+  "timezone": "browser",
+  "refresh": "10s",
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "schemaVersion": 39,
+  "version": 1,
+  "editable": false,
+  "panels": [
+    {
+      "id": 1,
+      "type": "table",
+      "title": "Akış 1 · Son 10 dakikada titreşimi 1,0'ı aşan sensörler",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 12,
+        "h": 9
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "timescaledb"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "timescaledb"
+          },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT sensor_id AS \"sensör\", bolge AS \"bölge\", anomali AS \"anomali (kayıt)\", round(max_titresim::numeric, 3) AS \"en yüksek titreşim\", son_varis AS \"son olay\"\nFROM anomali_son10dk ORDER BY anomali DESC"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true
+      }
+    },
+    {
+      "id": 2,
+      "type": "table",
+      "title": "Akış 2 · Susan sensörler (60 sn'dir olayı ulaşmayan)",
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 12,
+        "h": 9
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "timescaledb"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "timescaledb"
+          },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT sensor_id AS \"sensör\", bolge AS \"bölge\", model, son_varis AS \"son olay\",\n  extract(epoch FROM sessizlik)::int AS \"sessizlik (sn)\"\nFROM susan_sensorler ORDER BY sessizlik DESC NULLS FIRST"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true
+      }
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "Dakika başına olay ve anomali sayısı",
+      "gridPos": {
+        "x": 0,
+        "y": 9,
+        "w": 24,
+        "h": 8
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "timescaledb"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "timescaledb"
+          },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "time_series",
+          "rawSql": "SELECT time_bucket('1 minute', pencere_baslangic) AS time,\n  sum(olay_sayisi) AS olay, sum(anomali_sayisi) AS anomali\nFROM sensor_dakika WHERE $__timeFilter(pencere_baslangic)\nGROUP BY 1 ORDER BY 1"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 10
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "anomali"
+            },
+            "properties": [
+              {
+                "id": "custom.axisPlacement",
+                "value": "right"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "red"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "id": 4,
+      "type": "table",
+      "title": "Toplu 1 · Bölge × saat (Türkiye) ortalama sıcaklık, °C (14 gün)",
+      "gridPos": {
+        "x": 0,
+        "y": 17,
+        "w": 24,
+        "h": 8
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "timescaledb"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "timescaledb"
+          },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT bolge AS \"bölge\",\n  round(max(ort_sicaklik) FILTER (WHERE saat_tr = 0)::numeric, 1) AS \"00\",\n  round(max(ort_sicaklik) FILTER (WHERE saat_tr = 1)::numeric, 1) AS \"01\",\n  round(max(ort_sicaklik) FILTER (WHERE saat_tr = 2)::numeric, 1) AS \"02\",\n  round(max(ort_sicaklik) FILTER (WHERE saat_tr = 3)::numeric, 1) AS \"03\",\n  round(max(ort_sicaklik) FILTER (WHERE saat_tr = 4)::numeric, 1) AS \"04\",\n  round(max(ort_sicaklik) FILTER (WHERE saat_tr = 5)::numeric, 1) AS \"05\",\n  round(max(ort_sicaklik) FILTER (WHERE saat_tr = 6)::numeric, 1) AS \"06\",\n  round(max(ort_sicaklik) FILTER (WHERE saat_tr = 7)::numeric, 1) AS \"07\",\n  round(max(ort_sicaklik) FILTER (WHERE saat_tr = 8)::numeric, 1) AS \"08\",\n  round(max(ort_sicaklik) FILTER (WHERE saat_tr = 9)::numeric, 1) AS \"09\",\n  round(max(ort_sicaklik) FILTER (WHERE saat_tr = 10)::numeric, 1) AS \"10\",\n  round(max(ort_sicaklik) FILTER (WHERE saat_tr = 11)::numeric, 1) AS \"11\",\n  round(max(ort_sicaklik) FILTER (WHERE saat_tr = 12)::numeric, 1) AS \"12\",\n  round(max(ort_sicaklik) FILTER (WHERE saat_tr = 13)::numeric, 1) AS \"13\",\n  round(max(ort_sicaklik) FILTER (WHERE saat_tr = 14)::numeric, 1) AS \"14\",\n  round(max(ort_sicaklik) FILTER (WHERE saat_tr = 15)::numeric, 1) AS \"15\",\n  round(max(ort_sicaklik) FILTER (WHERE saat_tr = 16)::numeric, 1) AS \"16\",\n  round(max(ort_sicaklik) FILTER (WHERE saat_tr = 17)::numeric, 1) AS \"17\",\n  round(max(ort_sicaklik) FILTER (WHERE saat_tr = 18)::numeric, 1) AS \"18\",\n  round(max(ort_sicaklik) FILTER (WHERE saat_tr = 19)::numeric, 1) AS \"19\",\n  round(max(ort_sicaklik) FILTER (WHERE saat_tr = 20)::numeric, 1) AS \"20\",\n  round(max(ort_sicaklik) FILTER (WHERE saat_tr = 21)::numeric, 1) AS \"21\",\n  round(max(ort_sicaklik) FILTER (WHERE saat_tr = 22)::numeric, 1) AS \"22\",\n  round(max(ort_sicaklik) FILTER (WHERE saat_tr = 23)::numeric, 1) AS \"23\"\nFROM toplu1 GROUP BY bolge ORDER BY avg(ort_sicaklik)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "cellOptions": {
+              "type": "color-background",
+              "mode": "gradient"
+            },
+            "align": "center"
+          },
+          "color": {
+            "mode": "continuous-BlYlRd"
+          },
+          "min": 8,
+          "max": 36
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "bölge"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "auto"
+                }
+              },
+              {
+                "id": "custom.width",
+                "value": 120
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true
+      }
+    },
+    {
+      "id": 5,
+      "type": "barchart",
+      "title": "Toplu 2 · Sensör modeline göre anomali oranı (%)",
+      "gridPos": {
+        "x": 0,
+        "y": 25,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "timescaledb"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "timescaledb"
+          },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT model, round(100.0 * sum(anomali) / sum(gelen), 3) AS \"anomali oranı (%)\"\nFROM toplu2 GROUP BY model ORDER BY 2 DESC"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#c0504d"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "xField": "model",
+        "showValue": "always",
+        "legend": {
+          "showLegend": false
+        }
+      }
+    },
+    {
+      "id": 6,
+      "type": "table",
+      "title": "Toplu 2 · Veri kaybı %5'i aşan sensörler (14 gün)",
+      "gridPos": {
+        "x": 12,
+        "y": 25,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "timescaledb"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "timescaledb"
+          },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT sensor_id AS \"sensör\", model, kurulum_yili AS \"kurulum\", gelen, beklenen,\n  round(100 * kayip_orani::numeric, 1) AS \"kayıp (%)\"\nFROM toplu2 WHERE kayip_orani > 0.05 ORDER BY kayip_orani DESC"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true
+      }
+    }
+  ]
+}

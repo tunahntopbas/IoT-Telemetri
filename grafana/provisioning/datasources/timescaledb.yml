@@ -1,0 +1,16 @@
+# Grafana açılırken bu veri kaynağını kendiliğinden ekler (elle tıklama gerekmez).
+apiVersion: 1
+datasources:
+  - name: TimescaleDB
+    uid: timescaledb
+    type: grafana-postgresql-datasource
+    url: timescaledb:5432
+    user: iot
+    isDefault: true
+    jsonData:
+      database: telemetri
+      sslmode: disable
+      timescaledb: true
+      postgresVersion: 1600
+    secureJsonData:
+      password: iot-gizli

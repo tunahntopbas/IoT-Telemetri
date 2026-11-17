@@ -1,0 +1,6 @@
+q1_sensor_son10dk n=1000 p50=0.25 p95=0.55 p99=1.30 max=20.86 ms
+q2_sensor_gecmis_10dk n=1000 p50=2.03 p95=5.48 p99=8.29 max=18.68 ms
+q3_anomali_son10dk n=1000 p50=0.41 p95=0.58 p99=0.75 max=8.93 ms
+q4_susan_sensorler n=1000 p50=1.55 p95=6.74 p99=11.34 max=37.50 ms
+q5_bolge_saatlik n=1000 p50=0.17 p95=0.89 p99=2.61 max=27.02 ms
+q6_dakika_basina_olay_1saat n=1000 p50=0.61 p95=3.79 p99=9.45 max=27.61 ms
