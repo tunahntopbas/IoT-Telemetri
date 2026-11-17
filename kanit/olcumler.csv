@@ -1,0 +1,23 @@
+tarih,olcum,deger,birim,yontem,tekrar,not
+2026-11-17,olay_deger_bayt_ortalama,142.58,bayt,"Kafka 'olcum-bayt' konusu; uretici --grup G221210024 --sablon iot --hiz 100 --sure 20; kafka-console-consumer ile 1934 mesaj okundu; deger (JSON) UTF-8 uzunlugu",1,"Apple M1, 8 GB RAM, Docker'a 4.786 GiB; Kafka/protokol ek yuku haric"
+2026-11-17,olay_deger_bayt_min,134,bayt,ayni 1934 mesaj,1,
+2026-11-17,olay_deger_bayt_max,147,bayt,ayni 1934 mesaj,1,
+2026-11-17,olay_deger_bayt_std,3.27,bayt,ayni 1934 mesaj (populasyon std),1,
+2026-11-17,olay_anahtar_bayt_ortalama,10,bayt,"ayni 1934 mesaj; anahtar sensor_id (ornek: sensor-066)",1,
+2026-11-17,akis_gonderilen_olay,1930,olay,uretici ciktisindaki 'toplam' satiri,1,tekrarlar dahil degil
+2026-11-17,akis_kafkadaki_mesaj,1934,mesaj,kafka-console-consumer --from-beginning ile sayildi,1,fark 4 = tekrar gonderilen olaylar
+2026-11-17,akis_tekrar_mesaj,4,mesaj,ayni deger metni birden fazla gelen mesajlar,1,1934 mesajin %0.21'i
+2026-11-17,akis_gec_olay_orani,4.81,%,"Kafka CreateTime - olay_zamani > 5 sn olan mesaj / 1934 (93 mesaj)",1,senaryo karti %5
+2026-11-17,akis_gec_olay_en_buyuk_gecikme,118.7,saniye,Kafka CreateTime - olay_zamani,1,senaryo karti en fazla 2 dk
+2026-11-17,akis_kirli_kayit,1,kayit,"1934 mesajda eksik alan ya da null deger",1,sicaklik=null
+2026-11-17,kafka_bolum_dagilimi_3bolum,743/637/554,mesaj,"olcum-bayt konusu, 3 bolum (bolum 2/0/1); en dolu / ortalama = 1.15",1,anahtar sensor_id
+2026-11-17,toplu_uretim_suresi,2.99,saniye,"/usr/bin/time; uretici --toplu 200000 --gun 2",1,S3'e 2 JSONL dosya
+2026-11-17,toplu_jsonl_toplam_boyut,28713415,bayt,"S3 list_objects_v2; iot/tarih=2026-11-15 (14354673) + tarih=2026-11-16 (14358742)",1,200000 satir
+2026-11-17,toplu_satir_bayt_ortalama,142.57,bayt,"DuckDB; 200000 satirin uzunlugu (satir sonu haric)",1,min 110 / max 147; kisa satirlar eksik alanli kayitlar
+2026-11-17,toplu_dosya_bayt_satir_basi,143.57,bayt,toplam dosya boyutu / 200000 (satir sonu dahil),1,
+2026-11-17,toplu_tekrar_satir,427,satir,"DuckDB count(*) - count(DISTINCT satir); uretici de 427 yazdi",1,%0.21
+2026-11-17,toplu_eksik_alanli_kayit,182,kayit,DuckDB json_keys uzunlugu 5,1,
+2026-11-17,toplu_null_degerli_kayit,195,kayit,"DuckDB; alan var ama deger null (sensor_id 41, bolge 38, sicaklik 42, nem 46, titresim 28)",1,
+2026-11-17,toplu_titresim_1ustu,782,kayit,DuckDB titresim > 1.0,1,normal ortalama 0.21; anomali adayi
+2026-11-17,toplu_sensor_basina_olay_ortalama,999.6,olay,"DuckDB; 200 sensor, sensor_id null olmayan kayitlar",1,min 664 (sensor-026) / max 1100 (sensor-139); en cok / ortalama = 1.10
+2026-11-17,toplu_hash8_en_dolu_ortalama_orani,1.31,oran,"DuckDB hash(sensor_id) % 8; en dolu 32783 / ortalama 25000",1,DuckDB hash'i Kafka murmur2 ile ayni degil; Z3'te Kafka/Spark ile yeniden olculecek
