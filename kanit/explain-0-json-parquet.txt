@@ -1,0 +1,98 @@
+=== EXPLAIN JSON ===
+== Physical Plan ==
+AdaptiveSparkPlan (7)
++- HashAggregate (6)
+   +- Exchange (5)
+      +- HashAggregate (4)
+         +- Project (3)
+            +- Filter (2)
+               +- Scan json  (1)
+
+
+(1) Scan json 
+Output [4]: [olay_zamani#0, bolge#2, sicaklik#3, tarih#6]
+Batched: false
+Location: InMemoryFileIndex [s3a://ham/iot]
+PushedFilters: [IsNotNull(bolge), EqualTo(bolge,Akdeniz)]
+ReadSchema: struct<olay_zamani:string,bolge:string,sicaklik:double>
+
+(2) Filter
+Input [4]: [olay_zamani#0, bolge#2, sicaklik#3, tarih#6]
+Condition : (isnotnull(bolge#2) AND (bolge#2 = Akdeniz))
+
+(3) Project
+Output [2]: [sicaklik#3, hour(from_utc_timestamp(cast(olay_zamani#0 as timestamp), Europe/Istanbul), Some(Etc/UTC)) AS saat#1708]
+Input [4]: [olay_zamani#0, bolge#2, sicaklik#3, tarih#6]
+
+(4) HashAggregate
+Input [2]: [sicaklik#3, saat#1708]
+Keys [1]: [saat#1708]
+Functions [1]: [partial_avg(sicaklik#3)]
+Aggregate Attributes [2]: [sum#1729, count#1730L]
+Results [3]: [saat#1708, sum#1731, count#1732L]
+
+(5) Exchange
+Input [3]: [saat#1708, sum#1731, count#1732L]
+Arguments: hashpartitioning(saat#1708, 8), ENSURE_REQUIREMENTS, [plan_id=2581]
+
+(6) HashAggregate
+Input [3]: [saat#1708, sum#1731, count#1732L]
+Keys [1]: [saat#1708]
+Functions [1]: [avg(sicaklik#3)]
+Aggregate Attributes [1]: [avg(sicaklik#3)#1725]
+Results [2]: [saat#1708, avg(sicaklik#3)#1725 AS avg(sicaklik)#1726]
+
+(7) AdaptiveSparkPlan
+Output [2]: [saat#1708, avg(sicaklik)#1726]
+Arguments: isFinalPlan=false
+
+
+=== EXPLAIN PARQUET ===
+== Physical Plan ==
+AdaptiveSparkPlan (7)
++- HashAggregate (6)
+   +- Exchange (5)
+      +- HashAggregate (4)
+         +- Project (3)
+            +- Filter (2)
+               +- Scan parquet  (1)
+
+
+(1) Scan parquet 
+Output [4]: [bolge#14, olay_zamani#16, sicaklik#18, tarih#20]
+Batched: true
+Location: InMemoryFileIndex [s3a://islenmis/iot]
+PushedFilters: [IsNotNull(bolge), EqualTo(bolge,Akdeniz)]
+ReadSchema: struct<bolge:string,olay_zamani:timestamp,sicaklik:double>
+
+(2) Filter
+Input [4]: [bolge#14, olay_zamani#16, sicaklik#18, tarih#20]
+Condition : (isnotnull(bolge#14) AND (bolge#14 = Akdeniz))
+
+(3) Project
+Output [2]: [sicaklik#18, hour(from_utc_timestamp(olay_zamani#16, Europe/Istanbul), Some(Etc/UTC)) AS saat#1741]
+Input [4]: [bolge#14, olay_zamani#16, sicaklik#18, tarih#20]
+
+(4) HashAggregate
+Input [2]: [sicaklik#18, saat#1741]
+Keys [1]: [saat#1741]
+Functions [1]: [partial_avg(sicaklik#18)]
+Aggregate Attributes [2]: [sum#1762, count#1763L]
+Results [3]: [saat#1741, sum#1764, count#1765L]
+
+(5) Exchange
+Input [3]: [saat#1741, sum#1764, count#1765L]
+Arguments: hashpartitioning(saat#1741, 8), ENSURE_REQUIREMENTS, [plan_id=2598]
+
+(6) HashAggregate
+Input [3]: [saat#1741, sum#1764, count#1765L]
+Keys [1]: [saat#1741]
+Functions [1]: [avg(sicaklik#18)]
+Aggregate Attributes [1]: [avg(sicaklik#18)#1758]
+Results [2]: [saat#1741, avg(sicaklik#18)#1758 AS avg(sicaklik)#1759]
+
+(7) AdaptiveSparkPlan
+Output [2]: [saat#1741, avg(sicaklik)#1759]
+Arguments: isFinalPlan=false
+
+

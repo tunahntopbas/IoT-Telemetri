@@ -1,0 +1,41 @@
+ATOMİK YAZMA DENEYİ (Z7) — 17.11.2026, Apple M1, Docker 4.786 GiB
+Betik: analiz/atomik_deney.py. Kaynak: s3a://tablolar/iot (2.992.895 satır). Her hedefe önce surum=1 ile tam yazıldı,
+sonra surum=2 ile overwrite başlatıldı ve yazma sürerken spark-submit süreci kill -9 ile öldürüldü.
+Kesme anı S3 listelemesiyle belirlendi (araclar kapsayıcısında boto3).
+
+== 1. Hazırlık (surum=1, tam yazma) ==
+delta tam yazma süresi: 41.4 s
+parquet tam yazma süresi: 16.6 s
+[delta] s3a://tablolar/iot_atomik
+  dosya: toplam 65, veri .parquet 64, _temporary altında 0, _SUCCESS yok
+  okunan satır: surum=1: 2,992,895   toplam 2,992,895
++-------+-------------------+---------+
+|version|timestamp          |operation|
++-------+-------------------+---------+
+|0      |2026-11-17 18:12:55|WRITE    |
++-------+-------------------+---------+
+
+[parquet] s3a://islenmis/iot_atomik
+  dosya: toplam 65, veri .parquet 64, _temporary altında 0, _SUCCESS var
+  okunan satır: surum=1: 2,992,895   toplam 2,992,895
+
+== 2. Delta'ya surum=2 yazarken kesme ==
+kesme anı: 85 .parquet anahtarı (64 eski + 21 yeni), 0 _temporary anahtarı, toplam 87 — 18:14:09 UTC'de kill -9
+
+== 3. Parquet'e surum=2 yazarken kesme ==
+yazma 19:33:50 UTC'de başladı; kesme anı: 15 .parquet anahtarı, 15 _temporary anahtarı, toplam 15 (eski 64 dosya silinmişti) — 19:34:11 UTC'de kill -9
+(İlk parquet denemesi geçersiz sayıldı: makine o sırada duraklamış, yazma hiç ilerlememiş, eski veri olduğu gibi kalmıştı.)
+
+== 4. Kesmeden sonra iki hedefin okunması ==
+[delta] s3a://tablolar/iot_atomik
+  dosya: toplam 90, veri .parquet 89, _temporary altında 0, _SUCCESS yok
+  okunan satır: surum=1: 2,992,895   toplam 2,992,895
++-------+-------------------+---------+
+|version|timestamp          |operation|
++-------+-------------------+---------+
+|0      |2026-11-17 18:12:55|WRITE    |
++-------+-------------------+---------+
+
+[parquet] s3a://islenmis/iot_atomik
+  dosya: toplam 20, veri .parquet 0, _temporary altında 20, _SUCCESS yok
+  OKUMA HATASI: AnalysisException: [UNABLE_TO_INFER_SCHEMA] Unable to infer schema for Parquet. It must be specified manually.

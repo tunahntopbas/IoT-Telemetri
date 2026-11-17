@@ -1,0 +1,15 @@
++-------+-------------------+---------+--------------------------------------------------------------------------------+-------------+---------------+-------------+
+|version|timestamp          |operation|operationParameters                                                             |numOutputRows|numRemovedFiles|numAddedFiles|
++-------+-------------------+---------+--------------------------------------------------------------------------------+-------------+---------------+-------------+
+|4      |2026-11-17 19:38:13|WRITE    |{mode -> Overwrite, partitionBy -> ["tarih"], predicate -> tarih = '2026-11-16'}|213750       |8              |NULL         |
+|3      |2026-11-17 19:37:18|WRITE    |{mode -> Overwrite, partitionBy -> ["tarih"]}                                   |2992895      |NULL           |NULL         |
+|2      |2026-11-17 19:35:24|WRITE    |{mode -> Overwrite, partitionBy -> ["tarih"], predicate -> tarih = '2026-11-16'}|213750       |8              |NULL         |
+|1      |2026-11-17 18:03:45|WRITE    |{mode -> Overwrite, partitionBy -> ["tarih"]}                                   |2992895      |NULL           |NULL         |
+|0      |2026-11-17 17:51:39|WRITE    |{mode -> Overwrite, partitionBy -> ["tarih"]}                                   |2994095      |NULL           |NULL         |
++-------+-------------------+---------+--------------------------------------------------------------------------------+-------------+---------------+-------------+
+
+versionAsOf 0: 2,994,095 satır · sütun sayısı 7 · 2026-11-16 günü 213,843 satır
+versionAsOf 1: 2,992,895 satır · sütun sayısı 12 · 2026-11-16 günü 213,750 satır
+versionAsOf 2: 2,992,895 satır · sütun sayısı 12 · 2026-11-16 günü 213,750 satır
+versionAsOf 3: 2,992,895 satır · sütun sayısı 12 · 2026-11-16 günü 213,750 satır
+versionAsOf 4: 2,992,895 satır · sütun sayısı 12 · 2026-11-16 günü 213,750 satır

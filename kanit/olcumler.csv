@@ -21,3 +21,62 @@ tarih,olcum,deger,birim,yontem,tekrar,not
 2026-11-17,toplu_titresim_1ustu,782,kayit,DuckDB titresim > 1.0,1,normal ortalama 0.21; anomali adayi
 2026-11-17,toplu_sensor_basina_olay_ortalama,999.6,olay,"DuckDB; 200 sensor, sensor_id null olmayan kayitlar",1,min 664 (sensor-026) / max 1100 (sensor-139); en cok / ortalama = 1.10
 2026-11-17,toplu_hash8_en_dolu_ortalama_orani,1.31,oran,"DuckDB hash(sensor_id) % 8; en dolu 32783 / ortalama 25000",1,DuckDB hash'i Kafka murmur2 ile ayni degil; Z3'te Kafka/Spark ile yeniden olculecek
+2026-11-17,z2_json_toplam_boyut,430691739,bayt,Hadoop FS listFiles s3a://ham/iot/ (14 dosya),1,"3.000.000 satir, 14 gun"
+2026-11-17,z2_parquet_snappy_iskelet_boyut,45306725,bayt,Hadoop FS listFiles s3a://islenmis/iot/ (112 dosya),1,JSON/Parquet orani 9.51; iskelet dropDuplicates sonrasi
+2026-11-17,z4_iskelet_dosya_sayisi,112,dosya,"partitionBy(tarih), kitin iskeleti",1,14 tarih klasoru
+2026-11-17,z4_iskelet_dosya_ort_boyut,404524,bayt,toplam / dosya sayisi,1,en kucuk 397248 / en buyuk 422116
+2026-11-17,z2_sorgu_suresi_json,1.459,saniye,"bolge=Akdeniz filtresi + saate gore ortalama sicaklik, collect(); 1 isinma + 3 olcum, ortalama",3,kosular: 1.448 / 1.293 / 1.637
+2026-11-17,z2_sorgu_suresi_parquet_snappy,1.379,saniye,"bolge=Akdeniz filtresi + saate gore ortalama sicaklik, collect(); 1 isinma + 3 olcum, ortalama",3,kosular: 1.510 / 1.360 / 1.268
+2026-11-17,z2_codec_snappy_boyut,44484298,bayt,"ayni temiz veri, partitionBy(tarih), 73 dosya",1,JSON/bu orani 9.68; yazma 8.8 s
+2026-11-17,z2_codec_snappy_okuma_suresi,1.075,saniye,"ayni Akdeniz sorgusu; 1 isinma + 3 olcum, ortalama",3,kosular: 1.385 / 1.054 / 0.784
+2026-11-17,z2_codec_snappy_tam_tarama_suresi,0.439,saniye,uc olcum sutununun toplami (filtresiz); 1 isinma + 3 olcum,3,kosular: 0.487 / 0.348 / 0.483
+2026-11-17,z2_codec_zstd_boyut,35525314,bayt,"ayni temiz veri, partitionBy(tarih), 73 dosya",1,JSON/bu orani 12.12; yazma 5.9 s
+2026-11-17,z2_codec_zstd_okuma_suresi,1.151,saniye,"ayni Akdeniz sorgusu; 1 isinma + 3 olcum, ortalama",3,kosular: 1.085 / 1.258 / 1.110
+2026-11-17,z2_codec_zstd_tam_tarama_suresi,0.496,saniye,uc olcum sutununun toplami (filtresiz); 1 isinma + 3 olcum,3,kosular: 0.450 / 0.524 / 0.514
+2026-11-17,z2_codec_gzip_boyut,36602779,bayt,"ayni temiz veri, partitionBy(tarih), 73 dosya",1,JSON/bu orani 11.77; yazma 5.8 s
+2026-11-17,z2_codec_gzip_okuma_suresi,0.677,saniye,"ayni Akdeniz sorgusu; 1 isinma + 3 olcum, ortalama",3,kosular: 0.799 / 0.581 / 0.650
+2026-11-17,z2_codec_gzip_tam_tarama_suresi,0.302,saniye,uc olcum sutununun toplami (filtresiz); 1 isinma + 3 olcum,3,kosular: 0.337 / 0.293 / 0.276
+2026-11-17,z2_codec_uncompressed_boyut,59621594,bayt,"ayni temiz veri, partitionBy(tarih), 73 dosya",1,JSON/bu orani 7.22; yazma 5.6 s
+2026-11-17,z2_codec_uncompressed_okuma_suresi,0.741,saniye,"ayni Akdeniz sorgusu; 1 isinma + 3 olcum, ortalama",3,kosular: 0.808 / 0.778 / 0.639
+2026-11-17,z2_codec_uncompressed_tam_tarama_suresi,0.297,saniye,uc olcum sutununun toplami (filtresiz); 1 isinma + 3 olcum,3,kosular: 0.271 / 0.325 / 0.296
+2026-11-17,z4_birlesik_dosya_sayisi,14,dosya,repartition(tarih) + partitionBy(tarih),1,
+2026-11-17,z4_birlesik_dosya_ort_boyut,2888834,bayt,toplam / dosya sayisi,1,
+2026-11-17,z4_count_suresi_iskelet,0.46,saniye,spark.read.parquet(yol).count(); 1 isinma + 3 olcum,3,kosular: 0.352 / 0.562 / 0.466
+2026-11-17,z4_count_suresi_birlesik,0.22,saniye,spark.read.parquet(yol).count(); 1 isinma + 3 olcum,3,kosular: 0.220 / 0.194 / 0.246
+2026-11-17,z3_ham_satir,3000000,satir,spark.read.json(s3a://ham/iot/) count,1,tekrarlar dahil
+2026-11-17,z3_en_dolu_ort_sensor_id,1.325,oran,"repartition(8, sensor_id) + spark_partition_id",1,bolumler: 318635/373280/496751/271677/293988/404506/389280/451883; bos bolum 0
+2026-11-17,z3_en_dolu_ort_bolge,3.437,oran,"repartition(8, bolge) + spark_partition_id",1,bolumler: 0/1288793/1170/853849/0/0/420418/435770; bos bolum 3
+2026-11-17,z3_en_dolu_ort_tarih,2.857,oran,"repartition(8, tarih) + spark_partition_id",1,bolumler: 0/428580/428570/214285/1071425/428570/214285/214285; bos bolum 1
+2026-11-17,z3_en_dolu_ort_saat,1.673,oran,"repartition(8, saat) + spark_partition_id",1,bolumler: 499075/627469/250199/499353/0/374913/374687/374304; bos bolum 1
+2026-11-17,z3_en_dolu_ort_sensor_id_saat,1.043,oran,"repartition(8, sensor_id, saat) + spark_partition_id",1,bolumler: 387509/372884/356775/391238/377795/382841/375891/355067; bos bolum 0
+2026-11-17,z3_en_dolu_ort_bolge_tuz4,2.013,oran,"repartition(8, bolge, tuz 0-3) + spark_partition_id",1,bolumler: 754792/217538/108936/641842/535762/209939/108771/422420; bos bolum 0
+2026-11-17,z3_en_dolu_ort_bolge_tuz8,1.434,oran,"repartition(8, bolge, tuz 0-7) + spark_partition_id",1,bolumler: 537657/217371/375218/535204/537311/213356/213276/370607; bos bolum 0
+2026-11-17,z3_farkli_deger_sayisi,sensor_id=201 bolge=8 saat=24,adet,distinct count,1,null dahil
+2026-11-17,z3_tekrar_eden_satir,5905,satir,count - dropDuplicates(tum alanlar).count,1,oran %0.197
+2026-11-17,z3_tekrar_etkisi_ort_sicaklik,21.73041 -> 21.73035,C,tum veri ortalama sicaklik: tekrarli -> tekrarsiz,1,fark 0.00006
+2026-11-17,z3_tekrar_etkisi_anomali_sayisi,12076 -> 12054,kayit,titresim>1.0 sayisi: tekrarli -> tekrarsiz,1,
+2026-11-17,z3_tekrar_etkisi_sensor_sayim_en_fazla,51,olay,"sensor basina count: tekrarli - tekrarsiz, en buyuk fark",1,sensor-149: 15586 -> 15535
+2026-11-17,z5_perf_broadcast_shuffle8,8.133,saniye,temizleme hatti (json oku + dropDuplicates + boyut join) -> noop; join=BroadcastHashJoin; spark.sql.autoBroadcastJoinThreshold=10485760; spark.sql.shuffle.partitions=8,3,kosular: 8.300 / 10.139 / 5.959
+2026-11-17,z5_perf_sortmerge_shuffle8,10.781,saniye,temizleme hatti (json oku + dropDuplicates + boyut join) -> noop; join=SortMergeJoin; spark.sql.autoBroadcastJoinThreshold=-1; spark.sql.shuffle.partitions=8,3,kosular: 14.805 / 8.524 / 9.013
+2026-11-17,z5_perf_broadcast_shuffle200,8.116,saniye,temizleme hatti (json oku + dropDuplicates + boyut join) -> noop; join=BroadcastHashJoin; spark.sql.autoBroadcastJoinThreshold=10485760; spark.sql.shuffle.partitions=200,3,kosular: 9.703 / 7.041 / 7.605
+2026-11-17,z5_perf_broadcast_shuffle8_5kosu,9.025,saniye,temizleme hatti (json oku + dropDuplicates + boyut join) -> noop; join=BroadcastHashJoin; spark.sql.autoBroadcastJoinThreshold=10485760; spark.sql.shuffle.partitions=8,5,kosular: 9.647 / 8.782 / 9.263 / 9.659 / 7.777
+2026-11-17,z5_perf_sortmerge_shuffle8_5kosu,12.667,saniye,temizleme hatti (json oku + dropDuplicates + boyut join) -> noop; join=SortMergeJoin; spark.sql.autoBroadcastJoinThreshold=-1; spark.sql.shuffle.partitions=8,5,kosular: 10.649 / 8.319 / 11.459 / 18.002 / 14.905
+2026-11-17,z5_perf_broadcast_shuffle200_5kosu,10.25,saniye,temizleme hatti (json oku + dropDuplicates + boyut join) -> noop; join=BroadcastHashJoin; spark.sql.autoBroadcastJoinThreshold=10485760; spark.sql.shuffle.partitions=200,5,kosular: 10.312 / 10.917 / 10.318 / 8.708 / 10.996
+2026-11-17,toplu_uretim_suresi_3m,39.23,saniye,/usr/bin/time; uretici --toplu 3000000 --gun 14,1,"14 JSONL dosyasi, icinde 5905 tekrar"
+2026-11-17,z5_iskelet_toplam_sure,57.73,saniye,/usr/bin/time; kitin is/toplu_is.py dosyasi degistirilmeden,1,"ham okuma 7.6 s (sema cikarimli), sorgu 0.91 s; cikti kanit/iskelet-ilk-kosu.txt"
+2026-11-17,z5_toplu_is_toplam_sure,75.1,saniye,is/toplu_is.py icindeki sayac (temizleme + Delta yazma + iki soru + CSV),1,ilk kosu 112.7 s (Delta tablosunun ilk yazimi dahil)
+2026-11-17,z3_kafka_8bolum_dagilim,1.063,oran,"bolum-deneme-8 konusu 8 bolumle elle acildi; uretici --hiz 500 --sure 20 (9773 olay, Kafka'da 9793 mesaj); kafka-get-offsets",1,bolumler 1256/1264/1103/1223/1184/1207/1255/1301; uretici confluent-kafka (librdkafka) varsayilan bolumleyici
+2026-11-17,z10_tekrar_eden_satir,5905,satir,is/toplu_is.py: count - dropDuplicates(tum alanlar),1,3.000.000 satirin %0.197'si; uretici de 5905 yazdi
+2026-11-17,z10_sensor_id_yok,1203,kayit,is/toplu_is.py: sensor_id null ya da alan yok (ham),1,tekrar ayiklandiktan sonra 1200; karantina tablosuna yazildi
+2026-11-17,z10_bolge_yok,1170,kayit,is/toplu_is.py: bolge null ya da alan yok (ham),1,1169'u sensorler.csv'den dolduruldu
+2026-11-17,z10_sicaklik_yok,1198,kayit,ayni,1,"kayit tutuldu, ortalamaya girmedi"
+2026-11-17,z10_nem_yok,1216,kayit,ayni,1,kayit tutuldu
+2026-11-17,z10_titresim_yok,1186,kayit,ayni,1,"kayit tutuldu, anomali sayilmadi"
+2026-11-17,z5_titresim_dagilimi,<0.5: 2986737; 0.5-1.0: 1; 1.0-1.5: 0; >=1.5: 12076,kayit,"is/toplu_is.py, ham veri",1,esik 1.0 bu bosluga gore secildi
+2026-11-17,z5_beklenen_olay_sensor_basi,15338,olay,"200 sensorun gelen olay sayisinin ortancasi (percentile_approx 0.5), 14 gun",1,"rastgele dalgalanma sqrt(15338)=124 olay, %0.81"
+2026-11-17,z5_kayip_sensor_sayisi,%20 ustu 15; %5-20 arasi 8; %1-5 arasi 14,sensor,toplu2.csv kayip_orani,1,%20 ustu: 13'un katlari; %5-20: 23'un katlari; %1-5 rastgele dalgalanma araliginda
+2026-11-17,z5_anomali_orani_TX-200,1.174,%,"toplu2: anomali/gelen, 24 sensor",1,diger modeller %0.295-0.302
+2026-11-17,z7_delta_kesme_sonrasi_satir,2992895,satir,atomik_deney.py: surum=2 overwrite yazilirken kill -9; sonra okuma,1,"hepsi surum=1; 25 sahipsiz parquet dosyasi kaldi, history'de yeni surum yok"
+2026-11-17,z7_parquet_kesme_sonrasi_veri_dosyasi,0,dosya,atomik_deney.py: surum=2 overwrite yazilirken kill -9; sonra listeleme,1,"eski 64 dosya silinmis, 20 dosya _temporary altinda; okuma UNABLE_TO_INFER_SCHEMA hatasi"
+2026-11-17,z7_delta_tam_yazma,41.4,saniye,"atomik_deney.py hazirla, 64 dosya",1,
+2026-11-17,z7_parquet_tam_yazma,16.6,saniye,"atomik_deney.py hazirla, 64 dosya",1,
