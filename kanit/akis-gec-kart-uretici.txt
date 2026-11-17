@@ -1,0 +1,3 @@
+→ Kafka 'akis-gec-kart' · acks=all · idempotent=açık
+→ Kafka 'akis-gec-kart' konusuna saniyede ~50 olay · geç oranı 0.05 (en fazla 2 dk) · Ctrl+C ile dur
+✓ toplam 14.673 olay

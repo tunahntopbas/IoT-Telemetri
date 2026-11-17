@@ -1,0 +1,16 @@
+uretici-deney-acksall kosu1 sure=5.51 → Kafka 'uretici-deney-acksall' · acks=all · idempotent=açık ✓ toplam 97.762 olay 
+uretici-deney-acksall kosu2 sure=5.42 → Kafka 'uretici-deney-acksall' · acks=all · idempotent=açık ✓ toplam 97.762 olay 
+uretici-deney-acksall kosu3 sure=5.4 → Kafka 'uretici-deney-acksall' · acks=all · idempotent=açık ✓ toplam 97.762 olay 
+  kafkadaki mesaj: 293871
+uretici-deney-acks1 kosu1 sure=5.47 → Kafka 'uretici-deney-acks1' · acks=1 · idempotent=kapalı ✓ toplam 97.762 olay 
+uretici-deney-acks1 kosu2 sure=5.37 → Kafka 'uretici-deney-acks1' · acks=1 · idempotent=kapalı ✓ toplam 97.762 olay 
+uretici-deney-acks1 kosu3 sure=5.38 → Kafka 'uretici-deney-acks1' · acks=1 · idempotent=kapalı ✓ toplam 97.762 olay 
+  kafkadaki mesaj: 293871
+uretici-deney-acks1-idk kosu1 sure=5.46 → Kafka 'uretici-deney-acks1-idk' · acks=1 · idempotent=kapalı ✓ toplam 97.762 olay 
+uretici-deney-acks1-idk kosu2 sure=5.35 → Kafka 'uretici-deney-acks1-idk' · acks=1 · idempotent=kapalı ✓ toplam 97.762 olay 
+uretici-deney-acks1-idk kosu3 sure=5.4 → Kafka 'uretici-deney-acks1-idk' · acks=1 · idempotent=kapalı ✓ toplam 97.762 olay 
+  kafkadaki mesaj: 293871
+uretici-deney-acks0 kosu1 sure=5.46 → Kafka 'uretici-deney-acks0' · acks=0 · idempotent=kapalı ✓ toplam 97.762 olay 
+uretici-deney-acks0 kosu2 sure=5.39 → Kafka 'uretici-deney-acks0' · acks=0 · idempotent=kapalı ✓ toplam 97.762 olay 
+uretici-deney-acks0 kosu3 sure=5.39 → Kafka 'uretici-deney-acks0' · acks=0 · idempotent=kapalı ✓ toplam 97.762 olay 
+  kafkadaki mesaj: 293871

@@ -1,0 +1,23 @@
+KIRILMA DENEYİ: S3 sağlık denetimi ve IPv6 (kurulumda yaşandı, 17.11.2026)
+
+== Kitin sağlık denetimindeki adres (localhost) bugün de başarısız ==
+$ docker exec bsm461-s3 wget -q -O /dev/null http://localhost:9333/cluster/status; echo $?
+wget: can't connect to remote host: Connection refused
+çıkış kodu 1
+
+$ docker exec bsm461-s3 wget -q -O /dev/null http://127.0.0.1:9333/cluster/status; echo $?
+çıkış kodu 0
+
+== localhost iki adrese çözülüyor, wget önce IPv6'yı (::1) deniyor ==
+127.0.0.1	localhost
+::1	localhost ip6-localhost ip6-loopback
+
+== SeaweedFS ana sunucusu (9333) yalnızca IPv4'te dinliyor ==
+tcp        0      0 172.22.0.2:9333         0.0.0.0:*               LISTEN      
+tcp        0      0 127.0.0.1:9333          0.0.0.0:*               LISTEN      
+
+== Kurulumdaki belirti (ilk docker compose up -d, kitin değiştirilmemiş hâli) ==
+Container bsm461-s3 Error dependency s3 failed to start
+dependency failed to start: container bsm461-s3 is unhealthy
+docker inspect sağlık günlüğü: FailingStreak 12, her denemede: wget: can't connect to remote host: Connection refused
+bsm461-araclar, bsm461-spark, bsm461-s3-kur: Created (hiç başlamadı)

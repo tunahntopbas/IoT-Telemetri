@@ -1,0 +1,23 @@
+Created topic akis-cokme.
+ÇÖKME DENEYİ — konu akis-cokme, tablo deney_cokme, yığın 8 yazıldıktan hemen sonra süreç öldürülüyor
+20:25:21 üretici başlıyor (--hiz 50 --sure 240 --gec-orani 0)
+20:27:07 ilk iş bitti: DENEY: yığın 8 veritabanına yazıldı, süreç şimdi öldürülüyor
+20:27:07 aynı checkpoint ile yeniden başlatılıyor
+20:29:25 üretici bitti: ✓ toplam 11.682 olay
+
+[exited with code 144]
+20:52:24 akış işi elle durduruldu (son veri 20:29:34'te işlenmişti)
+
+== batch_gunlugu: birden fazla yazılan yığınlar ==
+ batch_id | yazilma_sayisi | satirlar  |              min              |              max              
+----------+----------------+-----------+-------------------------------+-------------------------------
+        8 |              2 | {194,194} | 2026-11-17 20:27:06.727411+00 | 2026-11-17 20:27:34.807172+00
+(1 row)
+
+== Kafka ile karşılaştırma ==
+Kafka mesajı: 11,701 · sensor_id/zaman dolu: 11,693 · tekrarsız: 11,674 · tekrar: 19 · 5 sn'den geç varan: 0
+OLCUM|2026-11-17|z8_cokme_kafka_mesaj|11701|mesaj|konu akis-cokme, toplu okuma|1|gecerli 11693, tekrarsiz 11674, gec(>5s) 0
+[deney_cokme] sayılan olay: 11,674 · sayıma girmeyen: 0 (%0.000)
+OLCUM|2026-11-17|z8_cokme_deney_cokme_sayima_girmeyen|0|olay|tekrarsiz Kafka olayi (11674) - tablodaki olay_sayisi toplami (11674)|1|oran %0.000
+  pencere karşılaştırması: 995 pencere · eksik sayılan pencere 0 (0 olay) · fazla sayılan pencere 0 (0 olay)
+OLCUM|2026-11-17|z8_cokme_deney_cokme_pencere_eksik_fazla|eksik 0 / fazla 0|olay|sensor x 1 dk pencere bazinda tablo ile Kafka'dan hesaplanan dogru deger|1|995 pencere

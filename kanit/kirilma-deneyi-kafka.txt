@@ -1,0 +1,53 @@
+KIRILMA DENEYİ: Kafka durdurulursa — konu sensorler, tablo sensor_dakika
+20:53:41 akış işi çalışıyor; üretici başlıyor (--hiz 50 --sure 600)
+20:55:21 servis deposu gecikme ölçümü başlıyor (yazma sürerken)
+q1_sensor_son10dk n=1000 p50=0.25 p95=0.55 p99=1.30 max=20.86 ms
+q2_sensor_gecmis_10dk n=1000 p50=2.03 p95=5.48 p99=8.29 max=18.68 ms
+q3_anomali_son10dk n=1000 p50=0.41 p95=0.58 p99=0.75 max=8.93 ms
+q4_susan_sensorler n=1000 p50=1.55 p95=6.74 p99=11.34 max=37.50 ms
+q5_bolge_saatlik n=1000 p50=0.17 p95=0.89 p99=2.61 max=27.02 ms
+q6_dakika_basina_olay_1saat n=1000 p50=0.61 p95=3.79 p99=9.45 max=27.61 ms
+20:55:30 Kafka durduruluyor
+ Container bsm461-kafka Stopped 
+20:57:04 90 sn sonra durum:
+  üretici günlüğünün son satırları:
+    %3|1794948931.783|FAIL|rdkafka#producer-1| [thrd:kafka:29092/bootstrap]: kafka:29092/1: Connect to ipv4#172.22.0.3:29092 failed: Connection refused (after 0ms in state CONNECT, 1 identical error(s) suppressed)
+    %3|1794948936.970|FAIL|rdkafka#producer-1| [thrd:kafka:29092/bootstrap]: kafka:29092/1: Failed to resolve 'kafka:29092': Name or service not known (after 90ms in state CONNECT)
+    %3|1794948970.145|FAIL|rdkafka#producer-1| [thrd:kafka:29092/bootstrap]: kafka:29092/1: Failed to resolve 'kafka:29092': Name or service not known (after 23ms in state CONNECT, 4 identical error(s) suppressed)
+    %3|1794949007.814|FAIL|rdkafka#producer-1| [thrd:kafka:29092/bootstrap]: kafka:29092/1: Failed to resolve 'kafka:29092': Name or service not known (after 33ms in state CONNECT, 4 identical error(s) suppressed)
+  akış işi günlüğündeki hata/uyarı satırları (ilk 5):
+    20:53:30 WARN ResolveWriteToStream: spark.sql.adaptive.enabled is not supported in streaming DataFrames/Datasets and will be disabled.
+    20:54:21 WARN ProcessingTimeExecutor: Current batch is falling behind. The trigger interval is 10000 milliseconds, but spent 11403 milliseconds
+    20:54:31 WARN ProcessingTimeExecutor: Current batch is falling behind. The trigger interval is 10000 milliseconds, but spent 10424 milliseconds
+    20:54:42 WARN ProcessingTimeExecutor: Current batch is falling behind. The trigger interval is 10000 milliseconds, but spent 10868 milliseconds
+    20:54:54 WARN ProcessingTimeExecutor: Current batch is falling behind. The trigger interval is 10000 milliseconds, but spent 12276 milliseconds
+  son yığın: {"sorgu": "sensor_dakika_db", "batch": 9, "zaman": "2026-11-17T20:55:19.985Z", "girdi": 688, "sure_ms": {"addBatch": 10680, "commitOffsets": 120, "getBatch": 1,
+  veritabanındaki en son varış: 2026-11-17 20:55:19.446+00
+  susan sensör sayısı (pano): 200
+20:57:06 Kafka yeniden başlatılıyor
+ Container bsm461-kafka Started 
+20:57:31 Kafka sağlıklı
+20:58:31 60 sn sonra: akış işi çalışıyor mu? HAYIR
+  son yığın: {"sorgu": "sensor_dakika_db", "batch": 9, "zaman": "2026-11-17T20:55:19.985Z", "girdi": 688, "sure_ms": {"addBatch": 10680, "commitOffsets": 120, "getBatch": 1,
+  susan sensör sayısı: 200
+21:03:45 üretici bitti: ✓ toplam 29.304 olay
+  üretici günlüğündeki hata satırları:
+    %6|1794948931.374|FAIL|rdkafka#producer-1| [thrd:kafka:29092/bootstrap]: kafka:29092/1: Disconnected (after 109529ms in state UP)
+    %3|1794948931.540|FAIL|rdkafka#producer-1| [thrd:kafka:29092/bootstrap]: kafka:29092/1: Connect to ipv4#172.22.0.3:29092 failed: Connection refused (after 7ms in state CONNECT)
+    %3|1794948931.783|FAIL|rdkafka#producer-1| [thrd:kafka:29092/bootstrap]: kafka:29092/1: Connect to ipv4#172.22.0.3:29092 failed: Connection refused (after 0ms in state CONNECT, 1 identical error(s) suppressed)
+    %3|1794948936.970|FAIL|rdkafka#producer-1| [thrd:kafka:29092/bootstrap]: kafka:29092/1: Failed to resolve 'kafka:29092': Name or service not known (after 90ms in state CONNECT)
+    %3|1794948970.145|FAIL|rdkafka#producer-1| [thrd:kafka:29092/bootstrap]: kafka:29092/1: Failed to resolve 'kafka:29092': Name or service not known (after 23ms in state CONNECT, 4 identical error(s) suppressed)
+    %3|1794949007.814|FAIL|rdkafka#producer-1| [thrd:kafka:29092/bootstrap]: kafka:29092/1: Failed to resolve 'kafka:29092': Name or service not known (after 33ms in state CONNECT, 4 identical error(s) suppressed)
+    %3|1794949031.318|FAIL|rdkafka#producer-1| [thrd:kafka:29092/bootstrap]: kafka:29092/1: Connect to ipv4#172.22.0.3:29092 failed: Connection refused (after 7ms in state CONNECT)
+    %3|1794949041.328|FAIL|rdkafka#producer-1| [thrd:kafka:29092/bootstrap]: kafka:29092/1: Connect to ipv4#172.22.0.3:29092 failed: Connection refused (after 5ms in state CONNECT, 1 identical error(s) suppressed)
+  akış işi çıkış nedeni (varsa):
+    20:56:31 ERROR Executor: Exception in task 6.0 in stage 30.0 (TID 238)
+    org.apache.kafka.common.errors.TimeoutException: Timeout of 60000ms expired before the position for partition sensorler-6 could be determined
+    20:56:31 ERROR Executor: Exception in task 3.0 in stage 30.0 (TID 235)
+== Kafka ile karşılaştırma ==
+Kafka mesajı: 29,368 · sensor_id/zaman dolu: 29,354 · tekrarsız: 29,290 · tekrar: 64 · 5 sn'den geç varan: 1,496
+OLCUM|2026-11-17|z11_kafka_durdu_kafka_mesaj|29368|mesaj|konu sensorler, toplu okuma|1|gecerli 29354, tekrarsiz 29290, gec(>5s) 1496
+[sensor_dakika] sayılan olay: 4,779 · sayıma girmeyen: 24,511 (%83.684)
+OLCUM|2026-11-17|z11_kafka_durdu_sensor_dakika_sayima_girmeyen|24511|olay|tekrarsiz Kafka olayi (29290) - tablodaki olay_sayisi toplami (4779)|1|oran %83.684
+  pencere karşılaştırması: 2,262 pencere · eksik sayılan pencere 1924 (24511 olay) · fazla sayılan pencere 0 (0 olay)
+OLCUM|2026-11-17|z11_kafka_durdu_sensor_dakika_pencere_eksik_fazla|eksik 24511 / fazla 0|olay|sensor x 1 dk pencere bazinda tablo ile Kafka'dan hesaplanan dogru deger|1|2262 pencere

@@ -1,72 +1,185 @@
 # -*- coding: utf-8 -*-
-"""AKIŞ HATTI İSKELETİ — Kafka → Spark Structured Streaming → pencereli sayım → çıktı.
+"""AKIŞ HATTI — Kafka → Spark Structured Streaming → sensör başına 1 dakikalık pencere → servis deposu.
 
-Çalıştırma (iki ayrı terminalde):
-  1) docker compose exec araclar python araclar/uretici.py --grup <kodunuz> --sablon iot --hiz 50
-  2) docker compose exec spark spark-submit is/akis_iskelet.py --sablon iot
+Grup G221210024, şablon iot. İki akış sorusu aynı pencere özetinden cevaplanıyor:
+  Akış 1: Son 10 dakikada titreşim eşiğini (1,0) aşan sensörler   → görünüm anomali_son10dk
+  Akış 2: 60 saniyedir olayı Kafka'ya ulaşmayan (susan) sensörler  → görünüm susan_sensorler
+(Görünümler servis/sema.sql içinde; 10 dakikalık ve 60 saniyelik pencere orada, dakikalık özetin üstünde.)
 
-Varsayılan hâliyle her 1 dakikalık pencerede anahtar başına olay sayısını konsola yazar.
-"TODO" yerlerini doldurmanız ve kararlarınızı raporda gerekçelendirmeniz beklenir.
-Bağlantılı haftalar: H3 (idempotentlik) · H10 (Kafka, ofset, teslim) · H11 (pencere, watermark, garanti)
+Çalıştırma:
+  docker compose --profile servis-ts up -d
+  docker compose exec araclar python araclar/uretici.py --grup G221210024 --sablon iot --hiz 50
+  docker compose exec spark spark-submit is/akis_iskelet.py
+
+Seçenekler:
+  --cikti db|s3|konsol   (birden fazla verilebilir: --cikti db --cikti s3)
+  --watermark "2 minutes" (birden fazla verilirse her biri ayrı sorgu ve ayrı tablo: deney için)
+  --konu, --tablo        deneylerde ayrı konu ve tablo kullanmak için
+
+Teslim garantisi: Spark ofsetleri ve pencere durumunu checkpoint'te tutuyor; çöken iş son tamamlanmamış
+yığını yeniden işliyor (en az bir kez). Veritabanına yazma (sensör, pencere) anahtarıyla upsert olduğu için
+yeniden işlenen yığın aynı satırları aynı değerlerle yazıyor: sonuç tam bir kez yazılmış gibi.
 """
-import argparse
-from pyspark.sql import SparkSession, functions as F, types as T
+import argparse, json, os, time, sys
+sys.path.insert(0, "/kit/is")
+from pyspark.sql import SparkSession, functions as F
+from db import baglanti
 
 ap = argparse.ArgumentParser()
-ap.add_argument("--sablon", required=True, choices=["log", "satis", "iot", "haber"])
-ap.add_argument("--cikti", default="konsol", choices=["konsol", "s3"],
-                help="konsol: ekrana yaz · s3: Parquet olarak s3a://islenmis/akis/<sablon>/")
+ap.add_argument("--sablon", default="iot", choices=["iot"])
+ap.add_argument("--konu", default="sensorler")
+ap.add_argument("--cikti", action="append", choices=["db", "s3", "konsol"])
+ap.add_argument("--tablo", default="sensor_dakika")
+ap.add_argument("--watermark", action="append")
+ap.add_argument("--tetik", default="10 seconds")
+ap.add_argument("--baslangic", default="earliest", choices=["earliest", "latest"])
+ap.add_argument("--ilerleme", default=None, help="mikro yığın ilerlemesinin yazılacağı .jsonl dosyası")
+ap.add_argument("--cokme-batch", type=int, default=None,
+                help="DENEY: bu yığın veritabanına yazılıp onaylandıktan hemen sonra süreci öldür (Spark ofseti kaydedemeden)")
 a = ap.parse_args()
+a.cikti = a.cikti or ["db"]
+a.watermark = a.watermark or ["2 minutes"]
 
-KONU = {"log": "web-loglari", "satis": "satislar", "iot": "sensorler", "haber": "haberler"}[a.sablon]
-ANAHTAR = {"log": "ip", "satis": "urun_id", "iot": "sensor_id", "haber": "kaynak"}[a.sablon]
+SEMA = "olay_zamani STRING, sensor_id STRING, bolge STRING, sicaklik DOUBLE, nem DOUBLE, titresim DOUBLE"
+TITRESIM_ESIK = 1.0          # toplu veride 0,5–1,5 arasında 3 milyon kayıttan yalnızca 1'i var (bölüm 7)
 
-# Şablonların alanları — TODO: kullanacağınız alanları ekleyin/çıkarın
-SEMA = {
-    "log":   "olay_zamani STRING, ip STRING, yontem STRING, yol STRING, durum INT, bayt LONG, sure_ms DOUBLE, ajan STRING",
-    "satis": "olay_zamani STRING, siparis_id STRING, magaza_id INT, urun_id INT, adet INT, birim_fiyat DOUBLE, tur STRING",
-    "iot":   "olay_zamani STRING, sensor_id STRING, bolge STRING, sicaklik DOUBLE, nem DOUBLE, titresim DOUBLE",
-    "haber": "olay_zamani STRING, haber_id STRING, kaynak STRING, kategori STRING, baslik STRING, metin STRING",
-}[a.sablon]
-
-spark = SparkSession.builder.appName(f"akis-{a.sablon}").getOrCreate()
+spark = (SparkSession.builder.appName(f"akis-{a.konu}")
+         .config("spark.sql.session.timeZone", "UTC").getOrCreate())
 spark.sparkContext.setLogLevel("WARN")
 
 # ── 1. Kafka'dan oku ───────────────────────────────────────────────────────
-# TODO (H10): startingOffsets "latest" mi "earliest" mi? İş yeniden başlarsa nereden devam eder?
+# "earliest": ilk çalıştırmada konunun başından başlar. Yeniden başlatmada bu ayar kullanılmaz;
+# Spark checkpoint'teki ofsetten devam eder.
 ham = (spark.readStream.format("kafka")
        .option("kafka.bootstrap.servers", "kafka:29092")
-       .option("subscribe", KONU)
-       .option("startingOffsets", "latest")
+       .option("subscribe", a.konu)
+       .option("startingOffsets", a.baslangic)
+       .option("failOnDataLoss", "true")
        .load())
 
 olaylar = (ham.select(F.from_json(F.col("value").cast("string"), SEMA).alias("o"),
-                      F.col("timestamp").alias("islem_zamani"))     # Kafka'ya ulaştığı an
-              .select("o.*", "islem_zamani")
-              .withColumn("olay_zamani", F.to_timestamp("olay_zamani")))   # olayın gerçekte olduğu an
+                      F.col("timestamp").alias("varis"))            # Kafka'ya ulaştığı an
+              .select("o.*", "varis")
+              .withColumn("olay_zamani", F.to_timestamp("olay_zamani"))
+              .filter(F.col("olay_zamani").isNotNull() & F.col("sensor_id").isNotNull()))
 
-# ── 2. Pencere ve watermark ────────────────────────────────────────────────
-# TODO (H11): watermark süresini seçin ve gerekçelendirin. Üretici olayların ~%5'ini 1–10 dakika
-#             GEÇ gönderiyor. 2 dakikalık watermark bunların ne kadarını kaçırır? Ölçün.
-# TODO (H11): pencere türü (sabit / kayan / oturum) ve boyutu sizin sorunuza uygun mu?
-# TODO (H10–H11): üretici bazı olayları İKİ KEZ gönderiyor. Sayımınız bundan etkileniyor mu?
-#                 Nasıl önlersiniz (dropDuplicates + watermark, idempotent yazma)?
-pencereli = (olaylar
-             .withWatermark("olay_zamani", "2 minutes")
-             .groupBy(F.window("olay_zamani", "1 minute"), F.col(ANAHTAR))
-             .agg(F.count("*").alias("olay_sayisi")))
 
-# ── 3. Çıktı ───────────────────────────────────────────────────────────────
-# TODO (H11): "konsol" yalnızca geliştirme içindir. Gerçek çıktınız nereye gidiyor (S3/Delta, ES,
-#             servis deposu)? Teslim garantiniz ne: en az bir kez mi, tam bir kez mi? Neden?
-if a.cikti == "konsol":
-    sorgu = (pencereli.writeStream.outputMode("update").format("console")
-             .option("truncate", False).option("numRows", 20)
-             .trigger(processingTime="10 seconds").start())
-else:
-    sorgu = (pencereli.writeStream.outputMode("append").format("parquet")
-             .option("path", f"s3a://islenmis/akis/{a.sablon}/")
-             .option("checkpointLocation", f"s3a://islenmis/_checkpoint/{a.sablon}/")   # kalınan yer
-             .trigger(processingTime="30 seconds").start())
+def ozet(wm):
+    """Watermark + tekrar ayıklama + sensör başına 1 dakikalık sabit pencere."""
+    return (olaylar
+            .withWatermark("olay_zamani", wm)
+            # Tekrar eden olay bütün alanlarıyla aynı. Olay zamanı anahtarda olduğu için ayıklama durumu
+            # watermark geçince siliniyor; durum sınırsız büyümüyor.
+            .dropDuplicates(["olay_zamani", "sensor_id", "bolge", "sicaklik", "nem", "titresim"])
+            .groupBy(F.window("olay_zamani", "1 minute"), "sensor_id")
+            .agg(F.max("bolge").alias("bolge"),
+                 F.count("*").alias("olay_sayisi"),
+                 F.coalesce(F.sum((F.col("titresim") > TITRESIM_ESIK).cast("int")), F.lit(0)).alias("anomali_sayisi"),
+                 F.max("titresim").alias("max_titresim"),
+                 F.avg("sicaklik").alias("ort_sicaklik"),
+                 F.max("olay_zamani").alias("son_olay"),
+                 F.max("varis").alias("son_varis"))
+            .select(F.col("window.start").alias("pencere_baslangic"), "sensor_id", "bolge", "olay_sayisi",
+                    "anomali_sayisi", "max_titresim", "ort_sicaklik", "son_olay", "son_varis"))
 
-sorgu.awaitTermination()
+
+UPSERT = """INSERT INTO {t} (pencere_baslangic, sensor_id, bolge, olay_sayisi, anomali_sayisi, max_titresim,
+                            ort_sicaklik, son_olay, son_varis, yazilma)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, now())
+ON CONFLICT (sensor_id, pencere_baslangic) DO UPDATE SET
+  bolge = EXCLUDED.bolge, olay_sayisi = EXCLUDED.olay_sayisi, anomali_sayisi = EXCLUDED.anomali_sayisi,
+  max_titresim = EXCLUDED.max_titresim, ort_sicaklik = EXCLUDED.ort_sicaklik, son_olay = EXCLUDED.son_olay,
+  son_varis = EXCLUDED.son_varis, yazilma = now()"""
+
+
+def db_yazici(tablo, sorgu_adi):
+    if tablo != "sensor_dakika":      # deney tabloları: ana tabloyla aynı yapı
+        c = baglanti(spark)
+        c.createStatement().execute(
+            f"CREATE TABLE IF NOT EXISTS {tablo} (LIKE sensor_dakika INCLUDING ALL)")
+        c.close()
+
+    def yaz(df, batch_id):
+        satirlar = (df.select(F.unix_millis("pencere_baslangic").alias("p"), "sensor_id", "bolge", "olay_sayisi",
+                              "anomali_sayisi", "max_titresim", "ort_sicaklik",
+                              F.unix_millis("son_olay").alias("so"), F.unix_millis("son_varis").alias("sv"))
+                    .collect())
+        jvm = spark._jvm
+        c = baglanti(spark)
+        try:
+            c.setAutoCommit(False)
+            ps = c.prepareStatement(UPSERT.format(t=tablo))
+            for r in satirlar:
+                ps.setTimestamp(1, jvm.java.sql.Timestamp(r["p"]))
+                ps.setString(2, r["sensor_id"])
+                ps.setString(3, r["bolge"])
+                ps.setInt(4, int(r["olay_sayisi"]))
+                ps.setInt(5, int(r["anomali_sayisi"]))
+                ps.setObject(6, r["max_titresim"])
+                ps.setObject(7, r["ort_sicaklik"])
+                ps.setTimestamp(8, jvm.java.sql.Timestamp(r["so"]))
+                ps.setTimestamp(9, jvm.java.sql.Timestamp(r["sv"]))
+                ps.addBatch()
+            if satirlar:
+                ps.executeBatch()
+            g = c.prepareStatement("INSERT INTO batch_gunlugu (sorgu, batch_id, satir, max_varis) VALUES (?, ?, ?, ?)")
+            g.setString(1, sorgu_adi)
+            g.setLong(2, batch_id)
+            g.setInt(3, len(satirlar))
+            g.setObject(4, jvm.java.sql.Timestamp(max(r["sv"] for r in satirlar)) if satirlar else None)
+            g.execute()
+            c.commit()          # yığının bütün satırları tek işlemde: ya hepsi ya hiçbiri
+        finally:
+            c.close()
+        if a.cokme_batch is not None and batch_id == a.cokme_batch:
+            print(f"DENEY: yığın {batch_id} veritabanına yazıldı, süreç şimdi öldürülüyor", flush=True)
+            os._exit(1)
+    return yaz
+
+
+def saniye(wm):
+    sayi, birim = wm.split()
+    return int(sayi) * (60 if birim.startswith("minute") else 1)
+
+
+sorgular = []
+for wm in a.watermark:
+    ek = "" if len(a.watermark) == 1 else f"_wm{saniye(wm)}"
+    tablo = a.tablo + ek
+    df = ozet(wm)
+    if "db" in a.cikti:
+        ad = f"{tablo}-db"
+        sorgular.append(df.writeStream.queryName(ad.replace("-", "_")).outputMode("update")
+                        .foreachBatch(db_yazici(tablo, ad))
+                        .option("checkpointLocation", f"s3a://islenmis/_checkpoint/akis/{tablo}-db/")
+                        .trigger(processingTime=a.tetik).start())
+    if "s3" in a.cikti:
+        # Dosya çıktısı yalnızca "append": pencere watermark geçince kesinleşir ve bir kez yazılır.
+        # Spark'ın dosya yazıcısı _spark_metadata günlüğüyle hangi yığının yazıldığını tutuyor (tam bir kez).
+        sorgular.append(df.writeStream.queryName(f"{tablo}_s3").outputMode("append").format("parquet")
+                        .option("path", f"s3a://islenmis/akis/{tablo}/")
+                        .option("checkpointLocation", f"s3a://islenmis/_checkpoint/akis/{tablo}-s3/")
+                        .trigger(processingTime=a.tetik).start())
+    if "konsol" in a.cikti:
+        sorgular.append(df.writeStream.outputMode("update").format("console").option("truncate", False)
+                        .trigger(processingTime=a.tetik).start())
+
+# Mikro yığın ilerlemesini dosyaya yaz (gecikme ve işlem süresi ölçümü için)
+gorulen = {}
+while any(q.isActive for q in sorgular):
+    for q in sorgular:
+        p = q.lastProgress
+        if p and gorulen.get(q.name) != p["batchId"]:
+            gorulen[q.name] = p["batchId"]
+            if a.ilerleme:
+                with open(a.ilerleme, "a") as f:
+                    f.write(json.dumps({"sorgu": q.name, "batch": p["batchId"], "zaman": p["timestamp"],
+                                        "girdi": p["numInputRows"], "sure_ms": p["durationMs"],
+                                        "girdi_hizi": p.get("inputRowsPerSecond"), "islem_hizi": p.get("processedRowsPerSecond"),
+                                        "kaynak": [{"bas": x.get("startOffset"), "son": x.get("endOffset"), "en_son": x.get("latestOffset")} for x in p.get("sources", [])],
+                                        "olay_zamani": p.get("eventTime", {}),
+                                        "durum": [s.get("numRowsDroppedByWatermark") for s in p.get("stateOperators", [])]}) + "\n")
+    time.sleep(2)
+for q in sorgular:
+    if q.exception():
+        raise q.exception()
