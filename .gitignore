@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# macOS
+.DS_Store
+
+# Spark / Delta
+spark-warehouse/
+metastore_db/
+derby.log
+checkpoint/
+checkpoints/
+*_checkpoint/
+**/_checkpoint*/
+.ipynb_checkpoints/
+
+# Büyük veri dosyaları
+veri/
+data/
+*.parquet
+*.csv
+*.json.gz
+*.jsonl
+*.zip
+*.tar.gz
+
+# Yerel ortam kanıtı çıktıları (ekran görüntüleri ayrıca eklenir)
+kanit/*.txt
