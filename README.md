@@ -1,5 +1,14 @@
 # BSM 461 Dönem Projesi — Başlangıç Kiti
 
+## Kitten farklar
+
+Bu depo, ders kitinin (`sumeyyekaynak/bsm461-proje-kit`) bir kopyasıdır. Kitten tek fark:
+
+| Dosya | Satır | Kitte | Bu depoda | Neden |
+|---|---|---|---|---|
+| `docker-compose.yml` | `s3` servisinin `healthcheck` komutu | `wget ... http://localhost:9333/cluster/status` | `wget ... http://127.0.0.1:9333/cluster/status` | Kapsayıcıdaki `wget`, `localhost` adını IPv6 `::1` adresine çözüyor; SeaweedFS ise yalnızca IPv4 dinliyor. Bu yüzden Apple M1'de `s3` kapsayıcısı sürekli `unhealthy` kalıyor, ona bağlı `spark`, `araclar` ve `s3-kur` hiç başlamıyordu. |
+
+
 Bu kit, dönem projesinde kullanacağınız bütün altyapıyı **tek komutla** bilgisayarınızda ayağa kaldırır:
 olay günlüğü (Kafka), nesne deposu (S3), toplu ve akış işleme (Spark), arama (Elasticsearch), pano (Kibana)
 ve servis deposu örneği (MongoDB).

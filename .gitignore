@@ -27,5 +27,6 @@ data/
 *.zip
 *.tar.gz
 
-# Yerel ortam kanıtı çıktıları (ekran görüntüleri ayrıca eklenir)
-kanit/*.txt
+# Teslim edilmesi zorunlu kanıtlar: yukarıdaki genel kurallardan muaf
+!kanit/
+!kanit/**
