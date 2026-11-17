@@ -8,7 +8,8 @@ RUN pip install --no-cache-dir \
       pyarrow==18.0.0 \
       duckdb==1.1.3 \
       elasticsearch==8.15.1 \
-      pymongo==4.10.1
+      pymongo==4.10.1 \
+      matplotlib==3.9.2
 WORKDIR /kit
 # DuckDB'nin S3 eklentisini imaja göm: kapsayıcı yeniden oluşturulunca yeniden indirilmesin,
 # internet yokken de çalışsın (indirme ara sıra "Failed to read connection" ile düşüyordu).
