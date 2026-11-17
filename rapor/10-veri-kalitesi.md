@@ -83,7 +83,29 @@ Bunlar temizlik sırasında atılmamalı, çünkü Akış 1 sorusunun aradığı
 
 ## Kirli veri tablosu ve kararlar
 
-(Toplu iş yazıldığında doldurulacak: kaç kayıt, hangi kusur, at / düzelt / ayrı tablo kararı ve gerekçesi. İlk düşüncemiz: `sensor_id` olmayan kayıt hiçbir soruya bağlanamadığı için ayrı bir "karantina" tablosuna yazılacak. `bolge` eksikse `sensorler.csv`'den doldurulabilir. Ölçüm alanı eksikse kayıt o ölçümün hesabına girmeyecek ama sayımda tutulacak. Tekrarlar tam satır eşleşmesiyle ayıklanacak.)
+3.000.000 satırlık toplu veri (`--toplu 3000000 --gun 14`), `is/toplu_is.py` çıktısı (`kanit/olcumler.csv`, `z10_*` satırları). Spark'ta "alan yok" ile "alan var ama null" aynı görünüyor; bu yüzden ikisi birlikte sayıldı.
+
+| Kusur | Kayıt sayısı | Ne yaptık | Neden |
+|---|---|---|---|
+| Tekrar eden olay (bütün alanları aynı) | 5.905 (%0,197) | Biri bırakıldı, diğerleri atıldı (`dropDuplicates`, bütün alanlar) | Ortalamayı neredeyse değiştirmiyor (0,00006 °C) ama sayımları şişiriyor; sensör başına en çok 51 olay, kayıp oranında %0,33 (bölüm 6.6). |
+| `sensor_id` yok | 1.203 (tekrar ayıklandıktan sonra 1.200) | Atılmadı, `s3a://tablolar/iot_karantina` tablosuna yazıldı | Hiçbir sensöre bağlanamıyor, iki soruda da kullanılamıyor. Ama silmek, üreticide ya da iletimde bir hata olduğunda kanıtı da silmek olur. |
+| `bolge` yok | 1.170 | 1.169'u `sensorler.csv`'den dolduruldu (`bolge_dolduruldu` sütunuyla işaretli) | Sensörün bölgesi sabit, boyut tablosunda doğru değer var. Kalan 1 kayıtta `sensor_id` de yok, o karantinada. |
+| `sicaklik` yok | 1.198 | Kayıt tutuldu; ortalamaya girmiyor | Olay geldi, yani sensör konuşuyor; Toplu 2'nin kayıp hesabında sayılması gerekiyor. `avg` boş değerleri atlıyor. |
+| `nem` yok | 1.216 | Kayıt tutuldu | Aynı neden; sorularımızda nem kullanılmıyor. |
+| `titresim` yok | 1.186 | Kayıt tutuldu; anomali sayılmıyor | `titresim > 1,0` koşulu boş değerde yanlış döner. |
+| Yüksek titreşim (> 1,0) | 12.076 ham / 12.054 tekrarsız | Atılmadı, `anomali = true` olarak işaretlendi | Kusur değil, Akış 1 ve Toplu 2'nin aradığı şey. Dağılımda 0,5 ile 1,5 arasında yalnızca 1 kayıt var; normal ölçümlerle anomaliler arasında belirgin bir boşluk olduğu için eşiği 1,0'a koyduk. |
+
+## Grafikler ve bulgular
+
+Grafikler `analiz/grafikler.py` ile toplu iş çıktılarından çizildi. Ayrıntılı açıklama bölüm 7.5'te.
+
+![Toplu 1](../analiz/cikti/toplu1.png)
+
+Bulgu 1: Titreşim anomalileri bölgeye bağlı değil, saate bağlı. Yedi bölgenin hepsinde en çok anomali 21.00'de görülüyor (toplam 1.054 kayıt; saat başına ortanca 384).
+
+![Toplu 2](../analiz/cikti/toplu2.png)
+
+Bulgu 2: Veri kaybı iki belirgin sensör grubunda toplanıyor ve modelle ilgisi yok. 13'ün katı olan 15 sensör olaylarının %28,7–%30,6'sını, 23'ün katı olan 8 sensör %7,3–%10,1'ini kaybediyor. Kalan 177 sensörde kayıp, ölçümün rastgele dalgalanması (%0,81) düzeyinde.
 
 ## KVKK notu
 

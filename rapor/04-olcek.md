@@ -27,14 +27,17 @@ Hesaplarda 142,58 bayt kullanıldı. Kafka'nın kayıt başlığı, anahtar ve s
 
 ## Parquet'te ne olur?
 
-Adım 6'da ölçülecek. Aynı veriyi JSON ve Parquet (snappy, zstd, gzip) olarak yazıp toplam boyutları karşılaştıracağız (Z2). Sıkıştırma oranı ölçülmeden 1095 günlük Parquet boyutu hesaplanmayacak.
+Ölçüldü (bölüm 5.1, `kanit/olcumler.csv` satırları `z2_codec_*`). Aynı 3.000.000 satır (430,7 MB JSON) farklı biçimlerde yazıldı. 1095 günlük boyut, 26,98 TB'ın ölçülen orana bölünmesiyle hesaplandı. Parquet dosyaları tekrarlar atıldıktan sonra yazıldığı için oranlar binde 2 kadar iyimser.
 
-| Biçim | Ölçülen oran (JSON'a göre) | 1095 günlük boyut |
-|---|---|---|
-| JSON (ham) | 1,00 | 26,98 TB |
-| Parquet + snappy | ölçülecek | ölçülecek |
-| Parquet + zstd | ölçülecek | ölçülecek |
-| Parquet + gzip | ölçülecek | ölçülecek |
+| Biçim | Ölçülen boyut | Ölçülen oran (JSON ÷ biçim) | 1095 günlük boyut (hesap) |
+|---|---|---|---|
+| JSON (ham) | 430,7 MB | 1,00 | 26,98 TB |
+| Parquet, sıkıştırmasız | 59,6 MB | 7,22 | 3,74 TB |
+| Parquet + snappy | 44,5 MB | 9,68 | 2,79 TB |
+| Parquet + gzip | 36,6 MB | 11,77 | 2,29 TB |
+| Parquet + zstd | 35,5 MB | 12,12 | 2,23 TB |
+
+Ham veriyi zstd'li Parquet olarak tutmak 3 yıllık hacmi yaklaşık 27 TB'tan 2,2 TB'a indiriyor. Günlük hacim 24,64 GB'tan 2,03 GB'a iniyor (24,64 ÷ 12,12). Bu da bizim 245 GB'lık diskte yaklaşık 120 güne karşılık geliyor; yani 3 yıl yine tek makineye sığmıyor.
 
 ## Ortalama mı, tepe mi?
 
@@ -51,7 +54,7 @@ Not: Kitin üreticisi `iot` şablonunda olayları günün saatlerine eşit dağ�
 
 ## Tek makine mi, dağıtık mı?
 
-- Depolama: 1095 günde 26,98 TB ham JSON birikiyor. Bizim makinenin diski 245 GB (`df -H /`, 17.11.2026). Bu kadar disk ham verinin yaklaşık 10 gününü tutar (245 GB ÷ 24,64 GB/gün ≈ 9,9 gün). Parquet sıkıştırması bu sayıyı değiştirecek ama 3 yılı tek makineye sığdırmak için 100 katın üstünde bir sıkıştırma gerekir. Bu yüzden ham veri için dağıtık nesne deposu (S3 uyumlu) gerekli.
+- Depolama: 1095 günde 26,98 TB ham JSON birikiyor. Bizim makinenin diski 245 GB (`df -H /`, 17.11.2026). Bu kadar disk ham verinin yaklaşık 10 gününü tutar (245 GB ÷ 24,64 GB/gün ≈ 9,9 gün). Ölçtüğümüz en iyi sıkıştırma (zstd'li Parquet, 12,12 kat) ile bile 3 yıl 2,23 TB ediyor ve 245 GB'a sığmıyor; bunun için 110 katın üstünde bir sıkıştırma gerekirdi. Bu yüzden ham veri için dağıtık nesne deposu (S3 uyumlu) gerekli.
 - Akış: Ortalama 285 KB/s, tepe 570 KB/s veri hızı küçük bir hız. Bu hızın tek makinede işlenip işlenemeyeceğini Z11'deki tepe yük deneyinde ölçeceğiz. Ama tek makine olsa bile dayanıklılık için Kafka'nın en az 3 düğümde kopyalanması gerekiyor (kitte tek düğüm, tek kopya). Yani dağıtıklık burada hızdan çok kopyalama gereği.
 
 ## İlk hangi bileşen tıkanır?
