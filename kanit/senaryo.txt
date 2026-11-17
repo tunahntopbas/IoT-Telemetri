@@ -1,0 +1,15 @@
+SENARYO KARTI · grup G221210024 · şablon iot
+────────────────────────────────────────────────────────────────
+Sistem             bir sensör ağı
+Ortalama hız       saniyede 2.000 ölçüm
+Tepe yük           en yoğun saatte ortalamanın 2 katı
+Uyarı süresi       akış sorusunun cevabı en geç 30 saniyede çıkmalı
+Geç veri           olayların %5'i en fazla 2 dakika geç gelir
+Kayıp sınırı       sayıma girmeyen (geç kalıp atılan): olayların en fazla %1'i
+Saklama            ham veri 1095 gün saklanır
+Servis sorgusu     p99 en fazla 50 ms
+────────────────────────────────────────────────────────────────
+Bu kart sizin sisteminizin GERÇEK koşullarıdır. Ölçek (Z1), Kafka bölüm sayısı ve watermark (Z8),
+servis deposu (Z6) kararlarınızı bu sayılara dayandırın. Kitteki veri bu sistemin bilgisayarınıza
+sığacak kadar küçültülmüş bir örneğidir: hızı --hiz ile siz seçersiniz; geç veri oranı ve gecikmesi
+bu karttaki gibidir. Koşullar birbiriyle çelişebilir — hangisinden ödün verdiğinizi gerekçelendirin.
