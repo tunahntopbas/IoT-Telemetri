@@ -8,13 +8,6 @@ rm -f $ILER
 zaman() { date -u +%H:%M:%S; }
 {
 echo "KURTARMA: Kafka kesintisinde ölen akış işi aynı checkpoint ile yeniden başlatılıyor"
-echo "  checkpoint'teki son ofset dosyası: $(docker compose exec -T araclar python - <<'PY'
-import boto3
-s3 = boto3.client("s3", endpoint_url="http://s3:8333", aws_access_key_id="any", aws_secret_access_key="any")
-r = s3.list_objects_v2(Bucket="islenmis", Prefix="_checkpoint/akis/sensor_dakika-db/offsets/")
-print(max((o["Key"].rsplit("/",1)[1] for o in r.get("Contents", []) if o["Key"].rsplit("/",1)[1].isdigit()), key=int))
-PY
-)"
 echo "$(zaman) iş başlatıldı"
 docker compose exec -T spark spark-submit is/akis_iskelet.py --ilerleme /kit/$ILER > analiz/cikti/akis-kurtarma.log 2>&1 &
 until [ -s $ILER ]; do sleep 2; done
@@ -22,7 +15,8 @@ echo "$(zaman) ilk yığın bitti:"
 head -1 $ILER | python3 -c "import json,sys; p=json.loads(sys.stdin.read()); print(f\"  batch {p['batch']}, girdi {p['girdi']:,} olay, süre {p['sure_ms']['triggerExecution']/1000:.1f} sn\")"
 sleep 60
 docker exec bsm461-spark pkill -f akis_iskelet || true
-echo "$(zaman) iş durduruldu; toplam yığın: $(wc -l < $ILER)"
+echo "$(zaman) iş durduruldu; yığınlar:"
+python3 -c "import json; [print(f\"  batch {p['batch']}: girdi {p['girdi']:,}, süre {p['sure_ms']['triggerExecution']/1000:.1f} sn\") for p in map(json.loads, open('$ILER'))]"
 echo "  susan sensör sayısı (üretici bittiği için hepsi susmuş olmalı): $(docker exec bsm461-timescaledb psql -U iot -d telemetri -tAc "SELECT count(*) FROM susan_sensorler")"
 sleep 5
 echo "== Kafka ile karşılaştırma =="

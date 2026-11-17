@@ -1,0 +1,31 @@
+Created topic akis-tepe.
+== --hiz 50 --sure 180 (2026-11-17T21:09:19 UTC) ==
+✓ toplam 8.752 olay
+== --hiz 2000 --sure 90 (2026-11-17T21:12:21 UTC) ==
+✓ toplam 175.005 olay
+== --hiz 4000 --sure 90 (2026-11-17T21:13:56 UTC) ==
+✓ toplam 349.976 olay
+== --hiz 8000 --sure 90 (2026-11-17T21:15:33 UTC) ==
+✓ toplam 700.153 olay
+  hız yığın girdi/yığın ort en büyük yığın süre ort süre max işlem hızı ort gecikme alt ort gecikme üst ort gecikme üst max
+   50    14             588            744    12.3s    16.1s            51/s           13.9s           24.9s           29.9s
+OLCUM|2026-11-17|z11_tepe_50_yigin_suresi_max|16.1|saniye|tepe_yuk_deneyi.sh, uretici --hiz 50, tetik 10 s; Spark ilerleme triggerExecution|14|ortalama 12.3 s
+OLCUM|2026-11-17|z11_tepe_50_islem_hizi_ort|51|olay/saniye|tepe_yuk_deneyi.sh, uretici --hiz 50, tetik 10 s; Spark processedRowsPerSecond|14|
+OLCUM|2026-11-17|z8_uyari_gecikmesi_50_ust_ortanca|24.9|saniye|tepe_yuk_deneyi.sh, uretici --hiz 50, tetik 10 s; batch_gunlugu yazilma(N)-max_varis(N-1)|13|max 29.9 s, p95 29.5 s
+ 2000     6          25,742         38,989    15.7s    21.0s         1,683/s           15.9s           30.5s           37.5s
+OLCUM|2026-11-17|z11_tepe_2000_yigin_suresi_max|21.0|saniye|tepe_yuk_deneyi.sh, uretici --hiz 2000, tetik 10 s; Spark ilerleme triggerExecution|6|ortalama 15.7 s
+OLCUM|2026-11-17|z11_tepe_2000_islem_hizi_ort|1683|olay/saniye|tepe_yuk_deneyi.sh, uretici --hiz 2000, tetik 10 s; Spark processedRowsPerSecond|6|
+OLCUM|2026-11-17|z8_uyari_gecikmesi_2000_ust_ortanca|30.5|saniye|tepe_yuk_deneyi.sh, uretici --hiz 2000, tetik 10 s; batch_gunlugu yazilma(N)-max_varis(N-1)|6|max 37.5 s, p95 37.5 s
+ 4000     9          39,619         47,191    11.4s    14.0s         3,559/s           11.9s           23.2s           27.2s
+OLCUM|2026-11-17|z11_tepe_4000_yigin_suresi_max|14.0|saniye|tepe_yuk_deneyi.sh, uretici --hiz 4000, tetik 10 s; Spark ilerleme triggerExecution|9|ortalama 11.4 s
+OLCUM|2026-11-17|z11_tepe_4000_islem_hizi_ort|3559|olay/saniye|tepe_yuk_deneyi.sh, uretici --hiz 4000, tetik 10 s; Spark processedRowsPerSecond|9|
+OLCUM|2026-11-17|z8_uyari_gecikmesi_4000_ust_ortanca|23.2|saniye|tepe_yuk_deneyi.sh, uretici --hiz 4000, tetik 10 s; batch_gunlugu yazilma(N)-max_varis(N-1)|9|max 27.2 s, p95 27.2 s
+ 8000     8          86,723        101,304    14.1s    16.2s         6,178/s           14.7s           28.7s           31.5s
+OLCUM|2026-11-17|z11_tepe_8000_yigin_suresi_max|16.2|saniye|tepe_yuk_deneyi.sh, uretici --hiz 8000, tetik 10 s; Spark ilerleme triggerExecution|8|ortalama 14.1 s
+OLCUM|2026-11-17|z11_tepe_8000_islem_hizi_ort|6178|olay/saniye|tepe_yuk_deneyi.sh, uretici --hiz 8000, tetik 10 s; Spark processedRowsPerSecond|8|
+OLCUM|2026-11-17|z8_uyari_gecikmesi_8000_ust_ortanca|28.7|saniye|tepe_yuk_deneyi.sh, uretici --hiz 8000, tetik 10 s; batch_gunlugu yazilma(N)-max_varis(N-1)|8|max 31.5 s, p95 31.5 s
+== Kafka ile karşılaştırma ==
+Kafka mesajı: 1,236,431 · sensor_id/zaman dolu: 1,235,948 · tekrarsız: 1,233,403 · tekrar: 2,545 · 5 sn'den geç varan: 61,372
+OLCUM|2026-11-17|z11_tepe_kafka_mesaj|1236431|mesaj|konu akis-tepe, toplu okuma|1|gecerli 1235948, tekrarsiz 1233403, gec(>5s) 61372
+[deney_tepe] sayılan olay: 1,233,403 · sayıma girmeyen: 0 (%0.000)
+OLCUM|2026-11-17|z11_tepe_deney_tepe_sayima_girmeyen|0|olay|tekrarsiz Kafka olayi (1233403) - tablodaki olay_sayisi toplami (1233403)|1|oran %0.000

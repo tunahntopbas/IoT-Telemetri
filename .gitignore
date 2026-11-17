@@ -30,3 +30,7 @@ data/
 # Teslim edilmesi zorunlu kanıtlar: yukarıdaki genel kurallardan muaf
 !kanit/
 !kanit/**
+
+# deney günlükleri (ham, büyük)
+analiz/cikti/*.log
+analiz/cikti/*uretici*.txt

@@ -1,0 +1,13 @@
+Created topic akis-tetik5.
+== --hiz 50 --sure 180 (2026-11-17T21:20:33 UTC) ==
+✓ toplam 8.741 olay
+  hız yığın girdi/yığın ort en büyük yığın süre ort süre max işlem hızı ort gecikme alt ort gecikme üst ort gecikme üst max
+   50    15             571            725    12.6s    14.8s            45/s           13.5s           25.8s           29.3s
+OLCUM|2026-11-17|z11_tetik5_50_yigin_suresi_max|14.8|saniye|tepe_yuk_deneyi.sh, uretici --hiz 50, tetik 5 seconds; Spark ilerleme triggerExecution|15|ortalama 12.6 s
+OLCUM|2026-11-17|z11_tetik5_50_islem_hizi_ort|45|olay/saniye|tepe_yuk_deneyi.sh, uretici --hiz 50, tetik 5 seconds; Spark processedRowsPerSecond|15|
+OLCUM|2026-11-17|z8_uyari_gecikmesi_tetik5_50_ust_ortanca|25.8|saniye|tepe_yuk_deneyi.sh, uretici --hiz 50, tetik 5 seconds; batch_gunlugu yazilma(N)-max_varis(N-1)|14|max 29.3 s, p95 28.6 s
+== Kafka ile karşılaştırma ==
+Kafka mesajı: 8,758 · sensor_id/zaman dolu: 8,754 · tekrarsız: 8,737 · tekrar: 17 · 5 sn'den geç varan: 433
+OLCUM|2026-11-17|z11_tetik5_kafka_mesaj|8758|mesaj|konu akis-tetik5, toplu okuma|1|gecerli 8754, tekrarsiz 8737, gec(>5s) 433
+[deney_tetik5] sayılan olay: 8,737 · sayıma girmeyen: 0 (%0.000)
+OLCUM|2026-11-17|z11_tetik5_deney_tetik5_sayima_girmeyen|0|olay|tekrarsiz Kafka olayi (8737) - tablodaki olay_sayisi toplami (8737)|1|oran %0.000

@@ -33,6 +33,10 @@ ap.add_argument("--tablo", default="sensor_dakika")
 ap.add_argument("--watermark", action="append")
 ap.add_argument("--tetik", default="10 seconds")
 ap.add_argument("--baslangic", default="earliest", choices=["earliest", "latest"])
+# Checkpoint yerel diskte (kapsayıcıya bağlı kit/veri/ klasörü). S3'teyken durum deposunun her yığında S3'e
+# yazılması yığın başına ~10 sn tutuyordu ve uyarı gecikmesi 30 sn sınırına dayanıyordu (rapor bölüm 8.3).
+ap.add_argument("--checkpoint", default="file:///kit/veri/checkpoint",
+                help="checkpoint kökü (ör. s3a://islenmis/_checkpoint/akis)")
 ap.add_argument("--ilerleme", default=None, help="mikro yığın ilerlemesinin yazılacağı .jsonl dosyası")
 ap.add_argument("--cokme-batch", type=int, default=None,
                 help="DENEY: bu yığın veritabanına yazılıp onaylandıktan hemen sonra süreci öldür (Spark ofseti kaydedemeden)")
@@ -151,14 +155,14 @@ for wm in a.watermark:
         ad = f"{tablo}-db"
         sorgular.append(df.writeStream.queryName(ad.replace("-", "_")).outputMode("update")
                         .foreachBatch(db_yazici(tablo, ad))
-                        .option("checkpointLocation", f"s3a://islenmis/_checkpoint/akis/{tablo}-db/")
+                        .option("checkpointLocation", f"{a.checkpoint}/{tablo}-db/")
                         .trigger(processingTime=a.tetik).start())
     if "s3" in a.cikti:
         # Dosya çıktısı yalnızca "append": pencere watermark geçince kesinleşir ve bir kez yazılır.
         # Spark'ın dosya yazıcısı _spark_metadata günlüğüyle hangi yığının yazıldığını tutuyor (tam bir kez).
         sorgular.append(df.writeStream.queryName(f"{tablo}_s3").outputMode("append").format("parquet")
                         .option("path", f"s3a://islenmis/akis/{tablo}/")
-                        .option("checkpointLocation", f"s3a://islenmis/_checkpoint/akis/{tablo}-s3/")
+                        .option("checkpointLocation", f"{a.checkpoint}/{tablo}-s3/")
                         .trigger(processingTime=a.tetik).start())
     if "konsol" in a.cikti:
         sorgular.append(df.writeStream.outputMode("update").format("console").option("truncate", False)
@@ -178,7 +182,9 @@ while any(q.isActive for q in sorgular):
                                         "girdi_hizi": p.get("inputRowsPerSecond"), "islem_hizi": p.get("processedRowsPerSecond"),
                                         "kaynak": [{"bas": x.get("startOffset"), "son": x.get("endOffset"), "en_son": x.get("latestOffset")} for x in p.get("sources", [])],
                                         "olay_zamani": p.get("eventTime", {}),
-                                        "durum": [s.get("numRowsDroppedByWatermark") for s in p.get("stateOperators", [])]}) + "\n")
+                                        "durum": [s.get("numRowsDroppedByWatermark") for s in p.get("stateOperators", [])],
+                                        "durum_ms": [{k: s.get(k) for k in ("commitTimeMs", "allUpdatesTimeMs", "allRemovalsTimeMs")}
+                                                     for s in p.get("stateOperators", [])]}) + "\n")
     time.sleep(2)
 for q in sorgular:
     if q.exception():

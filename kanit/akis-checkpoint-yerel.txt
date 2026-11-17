@@ -1,0 +1,19 @@
+Created topic akis-yerel.
+== --hiz 50 --sure 180 (2026-11-17T21:25:33 UTC) ==
+✓ toplam 8.722 olay
+== --hiz 8000 --sure 90 (2026-11-17T21:28:33 UTC) ==
+✓ toplam 700.150 olay
+  hız yığın girdi/yığın ort en büyük yığın süre ort süre max işlem hızı ort gecikme alt ort gecikme üst ort gecikme üst max
+   50    18             475            492     2.0s     4.4s           255/s            2.0s           12.1s           13.4s
+OLCUM|2026-11-17|z11_yerel_50_yigin_suresi_max|4.4|saniye|tepe_yuk_deneyi.sh, uretici --hiz 50, tetik 10 seconds; Spark ilerleme triggerExecution|18|ortalama 2.0 s
+OLCUM|2026-11-17|z11_yerel_50_islem_hizi_ort|255|olay/saniye|tepe_yuk_deneyi.sh, uretici --hiz 50, tetik 10 seconds; Spark processedRowsPerSecond|18|
+OLCUM|2026-11-17|z8_uyari_gecikmesi_yerel_50_ust_ortanca|12.1|saniye|tepe_yuk_deneyi.sh, uretici --hiz 50, tetik 10 seconds; batch_gunlugu yazilma(N)-max_varis(N-1)|17|max 13.4 s, p95 12.9 s
+ 8000    10          65,500         70,204     4.2s     5.7s        15,752/s            4.6s           14.7s           16.1s
+OLCUM|2026-11-17|z11_yerel_8000_yigin_suresi_max|5.7|saniye|tepe_yuk_deneyi.sh, uretici --hiz 8000, tetik 10 seconds; Spark ilerleme triggerExecution|10|ortalama 4.2 s
+OLCUM|2026-11-17|z11_yerel_8000_islem_hizi_ort|15752|olay/saniye|tepe_yuk_deneyi.sh, uretici --hiz 8000, tetik 10 seconds; Spark processedRowsPerSecond|10|
+OLCUM|2026-11-17|z8_uyari_gecikmesi_yerel_8000_ust_ortanca|14.7|saniye|tepe_yuk_deneyi.sh, uretici --hiz 8000, tetik 10 seconds; batch_gunlugu yazilma(N)-max_varis(N-1)|10|max 16.1 s, p95 16.1 s
+== Kafka ile karşılaştırma ==
+Kafka mesajı: 710,381 · sensor_id/zaman dolu: 710,109 · tekrarsız: 708,602 · tekrar: 1,507 · 5 sn'den geç varan: 35,308
+OLCUM|2026-11-17|z11_yerel_kafka_mesaj|710381|mesaj|konu akis-yerel, toplu okuma|1|gecerli 710109, tekrarsiz 708602, gec(>5s) 35308
+[deney_yerel] sayılan olay: 708,602 · sayıma girmeyen: 0 (%0.000)
+OLCUM|2026-11-17|z11_yerel_deney_yerel_sayima_girmeyen|0|olay|tekrarsiz Kafka olayi (708602) - tablodaki olay_sayisi toplami (708602)|1|oran %0.000

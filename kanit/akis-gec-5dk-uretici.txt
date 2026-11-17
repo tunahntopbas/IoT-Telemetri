@@ -1,0 +1,3 @@
+→ Kafka 'akis-gec-5dk' · acks=all · idempotent=açık
+→ Kafka 'akis-gec-5dk' konusuna saniyede ~50 olay · geç oranı 0.05 (en fazla 5 dk) · Ctrl+C ile dur
+✓ toplam 14.602 olay

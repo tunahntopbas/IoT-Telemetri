@@ -1,0 +1,6 @@
+Kafka mesajı: 14,630 · sensor_id/zaman dolu: 14,621 · tekrarsız: 14,593 · tekrar: 28 · 5 sn'den geç varan: 758
+OLCUM|2026-11-17|z8_gec-5dk_kafka_mesaj|14630|mesaj|konu akis-gec-5dk, toplu okuma|1|gecerli 14621, tekrarsiz 14593, gec(>5s) 758
+[deney_gec_5dk_wm120] sayılan olay: 14,156 · sayıma girmeyen: 437 (%2.995)
+OLCUM|2026-11-17|z8_gec-5dk_deney_gec_5dk_wm120_sayima_girmeyen|437|olay|tekrarsiz Kafka olayi (14593) - tablodaki olay_sayisi toplami (14156)|1|oran %2.995
+[deney_gec_5dk_wm30] sayılan olay: 13,909 · sayıma girmeyen: 684 (%4.687)
+OLCUM|2026-11-17|z8_gec-5dk_deney_gec_5dk_wm30_sayima_girmeyen|684|olay|tekrarsiz Kafka olayi (14593) - tablodaki olay_sayisi toplami (13909)|1|oran %4.687
