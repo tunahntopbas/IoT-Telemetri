@@ -1,45 +1,61 @@
-# Sunum konuşma notları (10 dk + 2 dk soru)
+# Sunum konuşma notları (12 dk)
 
-Bölüşüm: Veli Tunahan slayt 1–3, Zeynep slayt 4–6 (canlı gösterim dahil), Behiç slayt 7–9, sorularda hepimiz. Hoca soruları kişiye soruyor; herkes kendi slaytlarındaki sayıların hangi deneyden geldiğini bilmeli (her slaytın sol altında kanıt dosyası yazıyor).
+Bölüşüm: Veli Tunahan slayt 1–4, Zeynep slayt 5–6 (canlı gösterim dahil), Behiç slayt 7–9, sorularda hepimiz. Süre kesin: 10. dakikada sunum kesilir. Sorular kişiye yöneltilebilir, o yüzden herkes her kararı ve sayının hangi `kanit/` dosyasından geldiğini bilmeli.
 
-Kural: slayttaki metni okumuyoruz. Başlık slaytın iddiası; onu söyleyip kanıtı gösteriyoruz.
+## 1. Omurga: iki hat, tek servis deposu
 
-## Slayt notları
+Konuşan: Veli Tunahan (0–1 dk). Soldan sağa üst satırı anlat: sensör üretici olayları Kafka’ya yazıyor, sensor_id anahtar olduğu için bir sensörün olayları hep aynı bölümde ve sırası korunuyor. Spark akış işi 1 dakikalık pencerelerde sayıyor, sonucu TimescaleDB’ye upsert ediyor, Grafana sadece TimescaleDB’yi okuyor. Alt satır: 14 günlük ham JSON S3’te gün klasörlerinde duruyor, Spark toplu iş temizleyip sensör tablosuyla birleştiriyor ve Delta tablosuna yazıyor; servis_yukle.py sonucu aynı TimescaleDB’ye taşıyor. Alttaki şeritte okların garantisi var: üretici acks=all ve idempotent, Spark Kafka’dan en az bir kez okuyor ama upsert yüzünden aynı yığın iki kez yazılsa da sonuç değişmiyor. Son cümle: bizde her şey tek kopya, üretimde Kafka 3 kopya olmalı. Ayrıntılı garanti tablosu raporda Tablo 3.2.
 
-**1. Omurga (0–1 dk, Veli Tunahan).** Şemayı soldan sağa anlat: üstte akış hattı (sensör → Kafka → Spark Streaming → TimescaleDB), altta toplu hat (S3 → Spark + Delta → TimescaleDB). İki hat aynı servis deposunda birleşiyor, Grafana yalnızca orayı okuyor. Kutularda ürün ve sürüm var; hepsi tek makinede.
+## 2. Kart: 2000 olay/s, 30 sn’de uyarı, 3 yıl saklama
 
-**2. Kart ve ölçülenler (1–2 dk, Veli Tunahan).** Kartın dört sınırını ve bizde ölçüleni tek tek söyle: uyarı 30 sn sınırına karşı en fazla 16,1 sn; kayıp %1 sınırına karşı 0; p99 50 ms sınırına karşı 11,3 ms; tepe yükün 2 katında bile her olay sayıldı. "Bu sonuçlara iki kararla geldik" diyerek geç.
+Konuşan: Veli Tunahan (1–2 dk). Kartı tek nefeste oku: saniyede 2000 olay, tepede 4000, uyarı 30 saniyede, olayların yüzde 5’i 2 dakikaya kadar geç geliyor, kayıp en fazla yüzde 1, 3 yıl saklama, sorgu p99 50 ms. Olay boyutunu kendimiz ölçtük: Kafka’dan 1934 mesaj okuyup ortalamasını aldık, 142,58 bayt. Buradan günde 24,64 GB, 3 yılda 27 TB çıkıyor. Bizim disk 245 GB, yani ham veri 10 günde dolar. zstd’li Parquet ile 2,23 TB’a iniyor ama yine sığmıyor. Sonuç: hız sorun değil, saklama dağıtık depo istiyor. 10 ve 100 kat hesabı raporda bölüm 4’te.
 
-**3. Watermark (2–3,5 dk, Veli Tunahan).** Çelişkiyi söyle: 30 sn'de uyarı ister, ama olayların %5'i 2 dk geç geliyor. Çözüm update modu: pencere kapanmadan her 10 sn'de o ana kadarki sayı yazılıyor, geç olay sonradan aynı satırı güncelliyor. Tablodaki ilk satırı göster: kart oranında 30 sn watermark %4,13 kaybediyor, 2 dk hiç kaybetmiyor. Son satır dürüstlük için: geç gelme 5 dk'ya uzarsa 2 dk da yetmiyor (%3,0).
+## 3. Watermark 2 dk, ama uyarı yine 30 sn içinde
 
-**4. Checkpoint (3,5–4,5 dk, Zeynep).** İlk ölçümde en kötü gecikme 29,9 sn'ydi, 2.000 olay/s'de 37,5 sn: sınır aşılıyordu. Tetiği 5 sn'ye indirmek bir şey değiştirmedi. Spark'ın ilerleme raporu nedeni gösterdi: durumun S3'e yazılması her yığında 9–24 sn. Checkpoint yerel diske alınca 13,4 sn, 8.000 olay/s'de 16,1 sn. Bedeli tek makinenin diski.
+Konuşan: Veli Tunahan (2–3,5 dk). Önce çelişkiyi söyle: 30 saniyede uyarı isteniyor ama olaylar 2 dakikaya kadar geç geliyor. Normalde pencere watermark geçince kapanır, yani 2 dakika beklemek gerekir. Biz update modunu seçtik: Spark her 10 saniyede o ana kadarki sayıyı yazıyor, geç olay gelince TimescaleDB’de aynı satırı upsert ile güncelliyor. Yani watermark uyarıyı geciktirmiyor, sadece pencerenin ne kadar süre açık kalacağını belirliyor. Tabloyu göster: aynı veriyle iki watermark denedik. Kart oranında 30 saniye yüzde 4,13 kaybediyor, 2 dakika hiç kaybetmiyor. Geç oranı yüzde 30 ve 50’ye çıkarınca fark büyüyor. Son satırı saklama: gecikme 5 dakikaya uzarsa 2 dakika da yüzde 3 kaybediyor; kartın sınırı 2 dakika olduğu için 2 dakikayı seçtik.
 
-**5. Delta (4,5–5 dk, Zeynep).** Aynı tablonun üstüne yazarken süreci `kill -9` ile öldürdük. Parquet'te eski dosyalar silinmiş, yenileri yarım: tablo okunamıyor. Delta'da işlem günlüğü yeni sürümü hiç onaylamadığı için eski sürüm eksiksiz okunuyor. Bedeli yazma süresi: 41,4 sn'ye karşı 16,6 sn.
+## 4. Uyarı 30 sn’yi aşıyordu: checkpoint yerel diske
 
-**6. Canlı gösterim (5–7 dk, Zeynep).** Önceden: Docker açık, `docker compose --profile servis-ts up -d`, akış işi ve üretici (`--hiz 50`) sunumdan 3 dk önce başlatılmış, Grafana tarayıcıda açık. Sırayla göster: zaman serisi her 10 sn'de ilerliyor, Akış 1 tablosu, Akış 2 boş (susan sensör yok), Toplu 1 ısı haritası. Bir şey aksarsa slayttaki ekran görüntüsüne geç; uğraşma.
+Konuşan: Veli Tunahan (3,5–4,5 dk). Bu slayt neden ölçmenin önemli olduğunu gösteriyor. İlk kurulumda checkpoint S3’teydi. Uyarı gecikmesini ölçünce 50 olay/s’de bile en kötü 29,9 saniye çıktı, 2000 olay/s’de 37,5: sınırı aşıyor. İlk akla gelen tetiği 10 saniyeden 5’e indirmekti, denedik, 29,3 çıktı, işe yaramadı. Spark’ın ilerleme raporunda her yığının yaklaşık 10 saniyesinin durumun S3’e yazılmasına gittiğini gördük. Checkpoint’i yerel diske alınca en kötü 13,4, 8000 olay/s’de bile 16,1 saniye. Bedelini söyle: disk giderse checkpoint gider; üretimde kopyalı disk gerekir. Checkpoint kaybolursa ne olduğunu Behiç kırılma kısmında anlatacak.
 
-**7. Kafka kesintisi (7–8 dk, Behiç).** Ne yaptık, ne gördük, neye bakınca, gerçek sistemde: dört kutuyu sırayla söyle. Asıl nokta: üretici olay kaybetmedi, ama akış işi 60 sn sonra öldü ve Kafka gelince geri dönmedi. Panoda 200 sensörün hepsi aynı anda "sustu": bu sensör değil hat arızası.
+## 5. Delta, çünkü yarıda kesilen yazma tabloyu bozmamalı
 
-**8. Kurtarma (8–9 dk, Behiç).** Aynı checkpoint ile başlatınca kaçırılan 24.577 olay okundu, kayıp 0. Veritabanı kapanınca da aynı. Çökmede yığın iki kez yazılıyor ama upsert sonucu bozmuyor. Sarı satırı vurgula: checkpoint kaybolur da iş "son ofsetten" başlarsa %21,9 kayıp. Son cümle teslim garantisi.
+Konuşan: Zeynep (4,5–5 dk). Soru şu: toplu iş tabloyu yeniden yazarken çökerse ne olur? Aynı deneyi iki biçimde yaptık. Çıplak Parquet’te Spark önce eski dosyaları siliyor, yenileri geçici klasörde yarım kalıyor; sonuçta tablo okunamıyor, şema bile çıkarılamıyor. Delta’da yeni dosyalar yazılsa da işlem günlüğüne yeni sürüm eklenmediği için okuyucu hâlâ eski sürümü görüyor: 2.992.895 satırın hepsi orada. Arta kalan 25 dosya sahipsiz, VACUUM ile temizlenir. Bedelini de söyle: Delta yazması 41,4 saniye, Parquet 16,6. Toplu iş zaten dakikalar sürüyor, bu fark bize sorun değil. Ek bilgi sorulursa: Delta tablosunun içi zstd’li Parquet, JSON’dan 12,12 kat küçük; versionAsOf ile eski sürümü okuduk.
 
-**9. Bulgu (9–10 dk, Behiç).** Grafikte soldaki yüksek çubuklar: numarası 13'ün katı olan 15 sensör %29 civarı, 23'ün katı olan 8 sensör %7–10 kaybediyor. Renkler karışık, yani model değil. Bakım ekibi için anlamı: önce bu sensörlerin bağlantısına bakılmalı. (Soru gelirse ikinci bulgu: TX-200'ün anomali oranı %1,17, diğer modellerin yaklaşık 4 katı.)
+## 6. Canlı: akış hattı veri işliyor
 
-**10. Sorular (10–12 dk).** Soru yedek slaytlardan birine denk gelirse o slaytı aç: Y1 garanti tablosu, Y2 neden 8 bölüm, Y3 sorgu gecikmeleri.
+Konuşan: Zeynep (5–7 dk). Sunumdan 3 dakika önce hazırla: docker compose --profile servis-ts up -d, akış işini başlat, üreticiyi --hiz 50 ile başlat. Tarayıcıda Grafana panosu açık dursun. Göster: Akış 1 tablosu 10 saniyede bir değişiyor; dakika başına olay grafiği ilerliyor; aşağıda toplu hattın sonuçları aynı panoda. Cümle: Grafana sadece TimescaleDB’yi okuyor, iki hattın sonucu orada birleşiyor. Bir şey aksarsa uğraşma, bu slayttaki görüntüyle anlat ve geç.
 
-## Olası sorular ve cevaplar
+## 7. Kafka’yı 90 saniye durdurduk
 
-**Neden 2 dk watermark?** Kart olayların %5'inin 2 dk'ya kadar geç geldiğini söylüyor; kayıp sınırı %1. 30 sn watermark kart oranında %4,13 kaybetti, 2 dk hiç kaybetmedi (`kanit/akis-gec-kart-dogrulama.txt`). Uyarı süresini korumak için update modu kullandık; watermark uyarıyı geciktirmiyor. Bedeli: bir pencerenin sayısı 2 dk boyunca kesinleşmiyor ve durum belleği büyüyor.
+Konuşan: Behiç (7–8 dk). Deneyi anlat: akış çalışırken Kafka kapsayıcısını 90 saniye durdurduk. Üretici kayıp vermedi: acks=all olduğu için onay gelmeyen olayları bellekte tuttu, Kafka dönünce gönderdi; 29.304 olayın hepsi Kafka’da. Asıl kırılan akış işi: 60 saniye sonra TimeoutException ile öldü ve Kafka geri gelince kendi başına dönmedi. Panoda bunun belirtisi ilginç: 200 sensörün hepsi aynı anda susan görünüyor. Bunu görünce sensörlere değil hatta bakmak gerekiyor. O anda olayların yüzde 83,7’si henüz sayılmamıştı. Bir sonraki slaytta nasıl kurtardığımız.
 
-**Neden 8 bölüm?** Bölüm sayısını tüketici paralelliği belirliyor: Spark'ta 8 çekirdek var, her bölüm bir görev. Hacim sınır değil: tepe 570 KB/s, Kafka bu makinede saniyede 18.000'den fazla olay kaldırdı. 200 sensör anahtarı 8 bölüme dengeli dağılıyor (en dolu / ortalama = 1,06). 100 kat büyümede 32–64 bölüm gerekir; bölüm sonradan artırılırsa anahtar → bölüm eşlemesi değişir, bunu baştan planlamak gerekir.
+## 8. Aynı checkpoint ile kayıp 0, checkpoint gidince %21,9
 
-**Neden broadcast join?** Boyut tablosu 200 satır. Broadcast ile her göreve kopyalanıyor, 3 milyon satırlık olay tablosu shuffle edilmiyor. Fiziksel planda `BroadcastHashJoin` görünüyor (`kanit/explain-1.txt`).
+Konuşan: Behiç (8–9 dk). Kurtarma: akış işini aynı checkpoint ile başlattık. Spark kaldığı ofsetten okudu, 24.577 olayı iki yığında yakaladı, kayıp sıfır. Veritabanını kapattığımızda da aynı: iş öldü ama ofset ilerlemediği için yeniden başlatınca kayıp ve tekrar sıfır. Kırmızı sayı önemli: checkpoint kaybolur da biri işi “son ofsetten” yani latest ile başlatırsa 2.289 mesaj atlanıyor, kayıp yüzde 21,9. Earliest ile başlatınca baştan okuyor ama upsert sayesinde sonuç bozulmuyor. Tablodaki üç satır raporun kırılma tablosundan; toplamda 12 kırılma deneyi yaptık. Teslim garantisi sorulursa: Kafka’dan en az bir kez okuyoruz, upsert ile sonuç tam bir kez gibi; bir yığını bilerek iki kez yazdırdık, tablo Kafka ile birebir aynı kaldı.
 
-**Neden TimescaleDB?** Bütün sorgular zaman aralığı okuması: bir sensörün son 10 dakikası ya da son N dakikanın bütün sensörleri. TimescaleDB tabloyu güne göre parçalıyor, sorgu yalnızca ilgili parçayı okuyor. Upsert hazır, SQL ile boyut tablosuna join var, Grafana kaynağı hazır. Ölçülen p99 en fazla 11,3 ms, sınır 50 ms. MongoDB'de gruplama sorguları aggregation pipeline'a dönüşürdü; Cassandra'da "bütün sensörler" sorguları bütün bölümleri tarardı.
+## 9. Anomali modele, veri kaybı sensör numarasına bağlı
 
-**Neden zstd?** Aynı veride zstd'li Parquet 35,5 MB, snappy 44,5 MB: %20 daha küçük. 1095 günlük saklamada depolamayı boyut belirliyor. Okuma hızında anlamlı bir fark ölçemedik, o yüzden hız iddiasında bulunmuyoruz.
+Konuşan: Behiç (9–10 dk). Toplu 2 sorusu iki şeyi soruyordu: hangi model daha çok anomali veriyor ve hangi sensörler veri kaybediyor. Anomali modelle ilgili: TX-200’de yüzde 1,17, diğer dört modelde yüzde 0,30 civarı, yani 4 kat. Kayıp ise modelle ilgili değil: yüzde 20’nin üstünde kaybeden 15 sensörün hepsi 13’ün katı, yüzde 7–10 kaybeden 8 sensörün hepsi 23’ün katı ve bunlar beş modele de dağılmış. Beklenen olay sayısı 200 sensörün 14 gündeki ortancası, 15.338; rastgele dalgalanma bunun karekökü, yüzde 0,81. O yüzden yüzde 1–5 arası kaybı gerçek kayıp saymadık. Bakım ekibine söyleyeceğimiz: anomali için TX-200’e, kayıp için bu 23 sensörün bağlantısına bakın.
 
-**Kafka çökünce ne oldu?** Üretici olayları bellekte tuttu, kayıp olmadı. Akış işi 60 sn sonra `TimeoutException` ile öldü ve kendiliğinden dönmedi; o sırada olayların %83,7'si sayılmamıştı. Aynı checkpoint ile başlatınca her şey yakalandı, kayıp 0. Gerçek sistemde iş gözetmen altında çalışmalı ve Kafka 3 kopyalı olmalı.
+## 10. Sorular
 
-**Tam bir kez mi, en az bir kez mi?** Kafka'dan okuma en az bir kez: çökmede yarım kalan yığın baştan işleniyor. Veritabanına yazma (sensör, pencere) anahtarıyla upsert ve değer o pencerenin toplamı. Aynı yığın iki kez yazılınca sonuç değişmiyor. Bunu deneyle gösterdik: yığın 8 iki kez yazıldı, tablo Kafka ile birebir aynı kaldı.
+Sorular herkese sorulabilir, her üye her kararı bilmeli. Kısa cevaplar:
 
-**Ölçümler tekrarlanabilir mi?** Her deney `analiz/` altında bir betik; çıktısı `kanit/` altında, sayılar `kanit/olcumler.csv`'de. Tekrar sayısı CSV'nin `tekrar` sütununda; çoğu deney bir kez yapıldı, bunu raporda belirttik.
+## Olası sorular ve kısa cevaplar
+
+**Neden 2 dk watermark?** Kart %5 olayın 2 dk’ya kadar geç geldiğini söylüyor; 30 sn watermark kart oranında %4,13 kaybetti, 2 dk hiç kaybetmedi. Uyarı update modu sayesinde gecikmiyor.
+
+**Neden 8 bölüm?** Spark’ta 8 çekirdek, her bölüm bir görev. Hacim sınır değil, tepe 570 KB/s. 200 sensör 8 bölüme dengeli dağılıyor (en dolu / ortalama 1,06). 100 katta 32–64 bölüm; sonradan artırmak anahtar eşlemesini değiştirir.
+
+**Neden TimescaleDB?** Bütün sorgular zaman aralığı okuması; tablo güne göre parçalanıyor, upsert ve SQL join hazır. Ölçülen p99 en fazla 11,3 ms, sınır 50 ms.
+
+**Neden broadcast join?** Boyut tablosu 200 satır, 6,4 KB. Olay tablosu shuffle edilmiyor; explain-1.txt’te BroadcastHashJoin. Üç koşu ortalaması 8,1 sn, sort-merge 10,8 sn.
+
+**Neden zstd?** Snappy’den %20 küçük (35,5 MB’a 44,5 MB). Okuma hızında anlamlı fark ölçemedik, hız iddiamız yok.
+
+**Tam bir kez mi?** Kafka’dan en az bir kez okuyoruz; (sensör, pencere) upsert yüzünden aynı yığın iki kez yazılınca sonuç değişmiyor. Yığın 8’i bilerek iki kez yazdırdık, tablo Kafka ile birebir aynı.
+
+**Bölüm anahtarı ve sıcak nokta?** bolge ile en dolu / ortalama 3,44, sensor_id+saat ile 1,04.
+
+**CAP/PACELC?** Kafka (acks=all, min.insync.replicas=2) ve eşzamanlı yedekli PostgreSQL için PC/EC: bölünmede tutarlılık, normalde gecikme yerine tutarlılık. Uyarının doğru olması birkaç saniyelik yazma beklemesinden önemli. Veritabanı kapanınca pano boş değil hata gösterdi.
