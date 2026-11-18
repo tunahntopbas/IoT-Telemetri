@@ -124,14 +124,17 @@ README'deki "Bizim hattımızı sıfırdan çalıştırmak" bölümünü sırayl
 
 ## 9. Sunumda kim ne anlatıyor
 
-| Dakika | Konu | Kim |
-|---|---|---|
-| 0–2 | Mimari şema | Tunahan |
-| 2–5 | İki karar: watermark + checkpoint, Delta | Tunahan, Zeynep |
-| 5–7 | Canlı Grafana gösterimi | Zeynep |
-| 7–9 | Kafka kesintisi deneyi | Behiç |
-| 9–10 | Bulgu | Behiç |
-| 10–12 | Sorular | Hepimiz (hoca kişiye soruyor) |
+| Dakika | Slayt | Konu | Kim |
+|---|---|---|---|
+| 0–2 | 1–2 | Mimari şema, kartın sınırları ve ölçtüğümüz değerler | Tunahan |
+| 2–3,5 | 3 | Karar 1a: 2 dk watermark + update modu | Tunahan |
+| 3,5–5 | 4–5 | Karar 1b: checkpoint yerel diske; Karar 2: Delta | Zeynep |
+| 5–7 | 6 | Canlı Grafana gösterimi | Zeynep |
+| 7–9 | 7–8 | Kafka kesintisi deneyi ve kurtarma | Behiç |
+| 9–10 | 9 | Bulgu: veri kaybı sensör numarasına bağlı | Behiç |
+| 10–12 | 10 | Sorular (hoca kişiye soruyor) | Hepimiz |
+
+Sorulardan sonra 3 yedek slayt var (garanti tablosu, neden 8 bölüm, sorgu gecikmeleri). Sunulmuyor, soru gelirse açılıyor.
 
 Konuşma notları ve olası soruların cevapları: `sunum/konusma-notlari.md`. Herkes en azından kendi bölümünün sayılarını ve "neden" cevabını bilmeli.
 

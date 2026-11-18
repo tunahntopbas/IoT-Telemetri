@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 """Raporda geçen her sayının kanit/olcumler.csv'de olup olmadığını kontrol eder.
 
-Çalıştırma: python3 analiz/sayi_kontrol.py [--ayrinti]
+Çalıştırma: python3 analiz/sayi_kontrol.py [--ayrinti] [--sunum]
+  --sunum: rapor yerine sunum slaytlarının metnini (sunum/*_sunum.html) kontrol eder.
 Kurallar:
   - Rapor metni rapor/02..11 bölümleri (kapak, beyanlar ve ekler hariç). Kod blokları, satır içi kod, dosya adları,
     sürüm numaraları, bölüm/şekil/tablo numaraları ve kanıt dosyası adları sayılmaz.
@@ -9,7 +10,7 @@ Kurallar:
   - Bir sayı CSV'deki herhangi bir sayıya eşitse (yazıldığı basamağa yuvarlanmış hâli dahil) "bulundu" sayılır.
   - Ölçüm olmayan sayılar (kartın koşulları, ayarlar, tanımlar) TANIM listesinde; her biri gerekçesiyle.
 """
-import csv, re, sys, glob, os
+import csv, html, re, sys, glob, os
 
 KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -61,11 +62,19 @@ def bulundu(deger, ondalik, kume):
 
 def main():
     kume = csv_sayilari()
-    dosyalar = sorted(f for f in glob.glob(os.path.join(KOK, "rapor", "*.md"))
-                      if re.match(r"(0[2-9]|1[01])-", os.path.basename(f)))
+    if "--sunum" in sys.argv:
+        dosyalar = glob.glob(os.path.join(KOK, "sunum", "*_sunum.html"))
+    else:
+        dosyalar = sorted(f for f in glob.glob(os.path.join(KOK, "rapor", "*.md"))
+                          if re.match(r"(0[2-9]|1[01])-", os.path.basename(f)))
     toplam, eksik = 0, []
     for d in dosyalar:
-        for ham, sayi, baglam in sayilar(open(d, encoding="utf-8").read()):
+        metin = open(d, encoding="utf-8").read()
+        if d.endswith(".html"):   # yalnızca görünen metin: stil, gömülü resim ve etiketler atılır
+            metin = re.sub(r"<style>.*?</style>|<img[^>]*>", " ", metin, flags=re.S)
+            metin = re.sub(r"<code>.*?</code>", " ", metin)
+            metin = html.unescape(re.sub(r"<[^>]+>", " ", metin))
+        for ham, sayi, baglam in sayilar(metin):
             if sayi.rstrip("0").rstrip(".") in TANIM or sayi in TANIM:
                 continue
             toplam += 1

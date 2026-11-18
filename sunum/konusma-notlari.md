@@ -1,26 +1,30 @@
-# Sunum konuşma notları (12 dk)
+# Sunum konuşma notları (10 dk + 2 dk soru)
 
-Önerilen bölüşüm: Veli Tunahan slayt 1–3, Zeynep slayt 4–5 (canlı gösterim dahil), Behiç slayt 6–8, sorularda hepimiz. Herkes kendi bölümündeki sayıların hangi deneyden geldiğini bilmeli (`kanit/` dosya adları aşağıda).
+Bölüşüm: Veli Tunahan slayt 1–3, Zeynep slayt 4–6 (canlı gösterim dahil), Behiç slayt 7–9, sorularda hepimiz. Hoca soruları kişiye soruyor; herkes kendi slaytlarındaki sayıların hangi deneyden geldiğini bilmeli (her slaytın sol altında kanıt dosyası yazıyor).
+
+Kural: slayttaki metni okumuyoruz. Başlık slaytın iddiası; onu söyleyip kanıtı gösteriyoruz.
 
 ## Slayt notları
 
-**1. Omurga (0–2 dk, Veli Tunahan).** Şemayı soldan sağa anlat: üstte akış hattı (sensör → Kafka → Spark Streaming → TimescaleDB), altta toplu hat (S3 → Spark + Delta → TimescaleDB). İkisi aynı servis deposunda birleşiyor, Grafana yalnızca orayı okuyor. Kartı tek cümleyle söyle: 30 sn uyarı, %5 olay 2 dk geç, kayıp en fazla %1, p99 50 ms.
+**1. Omurga (0–1 dk, Veli Tunahan).** Şemayı soldan sağa anlat: üstte akış hattı (sensör → Kafka → Spark Streaming → TimescaleDB), altta toplu hat (S3 → Spark + Delta → TimescaleDB). İki hat aynı servis deposunda birleşiyor, Grafana yalnızca orayı okuyor. Kutularda ürün ve sürüm var; hepsi tek makinede.
 
-**2. Watermark (2–3,5 dk, Veli Tunahan).** Çelişkiyi söyle: 30 sn'de uyarı ister, ama olayların bir kısmı 2 dk geç geliyor. Çözüm update modu: pencere kapanmadan her 10 sn'de o ana kadarki sayı yazılıyor, geç olay sonradan aynı satırı güncelliyor. Tablodaki ilk satırı göster: kart oranında 30 sn watermark %4,13 kaybediyor, 2 dk hiç kaybetmiyor. Son satır dürüstlük için: geç olay 5 dk'ya kadar uzarsa 2 dk da yetmiyor (%3,0).
+**2. Kart ve ölçülenler (1–2 dk, Veli Tunahan).** Kartın dört sınırını ve bizde ölçüleni tek tek söyle: uyarı 30 sn sınırına karşı en fazla 16,1 sn; kayıp %1 sınırına karşı 0; p99 50 ms sınırına karşı 11,3 ms; tepe yükün 2 katında bile her olay sayıldı. "Bu sonuçlara iki kararla geldik" diyerek geç.
 
-**3. Checkpoint (3,5–4,5 dk, Veli Tunahan).** İlk ölçümde en kötü gecikme 29,9 sn'ydi, yükte 37,5 sn: sınırı aşıyordu. Tetiği 5 sn'ye indirmek bir şey değiştirmedi. Spark'ın ilerleme raporu nedeni gösterdi: durumun S3'e yazılması. Checkpoint yerel diske alınca 13,4 sn. Bedeli tek makinenin diski.
+**3. Watermark (2–3,5 dk, Veli Tunahan).** Çelişkiyi söyle: 30 sn'de uyarı ister, ama olayların %5'i 2 dk geç geliyor. Çözüm update modu: pencere kapanmadan her 10 sn'de o ana kadarki sayı yazılıyor, geç olay sonradan aynı satırı güncelliyor. Tablodaki ilk satırı göster: kart oranında 30 sn watermark %4,13 kaybediyor, 2 dk hiç kaybetmiyor. Son satır dürüstlük için: geç gelme 5 dk'ya uzarsa 2 dk da yetmiyor (%3,0).
 
-**4. Delta (4,5–5 dk, Zeynep).** Aynı tablonun üstüne yazarken süreci öldürdük. Parquet'te eski dosyalar silinmiş, yenileri yarım: tablo okunamıyor. Delta'da işlem günlüğü yeni sürümü hiç onaylamadığı için eski sürüm eksiksiz okunuyor.
+**4. Checkpoint (3,5–4,5 dk, Zeynep).** İlk ölçümde en kötü gecikme 29,9 sn'ydi, 2.000 olay/s'de 37,5 sn: sınır aşılıyordu. Tetiği 5 sn'ye indirmek bir şey değiştirmedi. Spark'ın ilerleme raporu nedeni gösterdi: durumun S3'e yazılması her yığında 9–24 sn. Checkpoint yerel diske alınca 13,4 sn, 8.000 olay/s'de 16,1 sn. Bedeli tek makinenin diski.
 
-**5. Canlı gösterim (5–7 dk, Zeynep).** Önceden: `docker compose --profile servis-ts up -d`, akış işi ve üretici (`--hiz 50`) sunumdan 3 dk önce başlatılmış olsun. Göster: Akış 1 tablosu, zaman serisi her 10 sn'de ilerliyor, Toplu 1 ısı haritası. Bir şey aksarsa slayttaki ekran görüntüsüne geç; uğraşma.
+**5. Delta (4,5–5 dk, Zeynep).** Aynı tablonun üstüne yazarken süreci `kill -9` ile öldürdük. Parquet'te eski dosyalar silinmiş, yenileri yarım: tablo okunamıyor. Delta'da işlem günlüğü yeni sürümü hiç onaylamadığı için eski sürüm eksiksiz okunuyor. Bedeli yazma süresi: 41,4 sn'ye karşı 16,6 sn.
 
-**6. Kafka kesintisi (7–8 dk, Behiç).** Kafka'yı 90 sn durdurduk. Üretici beklemiş, olay kaybetmemiş. Ama akış işi 60 sn sonra ölmüş ve Kafka gelince geri dönmemiş. Panoda 200 sensörün hepsi "sustu": bu sensör değil hat arızası.
+**6. Canlı gösterim (5–7 dk, Zeynep).** Önceden: Docker açık, `docker compose --profile servis-ts up -d`, akış işi ve üretici (`--hiz 50`) sunumdan 3 dk önce başlatılmış, Grafana tarayıcıda açık. Sırayla göster: zaman serisi her 10 sn'de ilerliyor, Akış 1 tablosu, Akış 2 boş (susan sensör yok), Toplu 1 ısı haritası. Bir şey aksarsa slayttaki ekran görüntüsüne geç; uğraşma.
 
-**7. Kurtarma (8–9 dk, Behiç).** Aynı checkpoint ile başlatınca 24.577 olay iki yığında okundu, kayıp 0. Veritabanı kapanınca da aynı. Çökmede yığın iki kez yazılıyor ama upsert sonucu bozmuyor. Kırmızı satır: checkpoint kaybolur da iş "son ofsetten" başlatılırsa %21,9 kayıp.
+**7. Kafka kesintisi (7–8 dk, Behiç).** Ne yaptık, ne gördük, neye bakınca, gerçek sistemde: dört kutuyu sırayla söyle. Asıl nokta: üretici olay kaybetmedi, ama akış işi 60 sn sonra öldü ve Kafka gelince geri dönmedi. Panoda 200 sensörün hepsi aynı anda "sustu": bu sensör değil hat arızası.
 
-**8. Bulgu (9–10 dk, Behiç).** Veri kaybı modelle değil sensör numarasıyla ilgili: 13'ün katları %29 civarı, 23'ün katları %7–10 kaybediyor. Anomali ise modelle ilgili: TX-200 diğerlerinin 4 katı. Bakım için anlamı: kayıp için o sensörlerin bağlantısına, anomali için TX-200'e bakılmalı.
+**8. Kurtarma (8–9 dk, Behiç).** Aynı checkpoint ile başlatınca kaçırılan 24.577 olay okundu, kayıp 0. Veritabanı kapanınca da aynı. Çökmede yığın iki kez yazılıyor ama upsert sonucu bozmuyor. Sarı satırı vurgula: checkpoint kaybolur da iş "son ofsetten" başlarsa %21,9 kayıp. Son cümle teslim garantisi.
 
-**9. Sorular (10–12 dk).**
+**9. Bulgu (9–10 dk, Behiç).** Grafikte soldaki yüksek çubuklar: numarası 13'ün katı olan 15 sensör %29 civarı, 23'ün katı olan 8 sensör %7–10 kaybediyor. Renkler karışık, yani model değil. Bakım ekibi için anlamı: önce bu sensörlerin bağlantısına bakılmalı. (Soru gelirse ikinci bulgu: TX-200'ün anomali oranı %1,17, diğer modellerin yaklaşık 4 katı.)
+
+**10. Sorular (10–12 dk).** Soru yedek slaytlardan birine denk gelirse o slaytı aç: Y1 garanti tablosu, Y2 neden 8 bölüm, Y3 sorgu gecikmeleri.
 
 ## Olası sorular ve cevaplar
 
