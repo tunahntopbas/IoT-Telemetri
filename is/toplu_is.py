@@ -30,7 +30,9 @@ ap.add_argument("--tarih", default=None, help="yalnızca bu günü işle (YYYY-M
 ap.add_argument("--explain", default="/kit/kanit/explain-1.txt")
 a = ap.parse_args()
 
-spark = SparkSession.builder.appName("toplu-iot").getOrCreate()
+# Parquet dosyaları zstd ile sıkıştırılıyor: aynı veride snappy'den %20 küçük (rapor bölüm 5, z2_codec_*_boyut).
+spark = (SparkSession.builder.appName("toplu-iot")
+         .config("spark.sql.parquet.compression.codec", "zstd").getOrCreate())
 spark.sparkContext.setLogLevel("ERROR")
 
 TABLO = "s3a://tablolar/iot"
@@ -151,12 +153,15 @@ print(f"toplu sonuçlar yazıldı ({time.time() - t0:.1f} s)")
 
 
 def csv_yaz(df, ad):
-    """Küçük sonucu tek bir CSV dosyası olarak analiz/cikti/ altına koyar (grafik için)."""
-    gecici = f"{CIKTI}/_{ad}"
+    """Küçük sonucu tek bir CSV dosyası olarak analiz/cikti/ altına koyar (grafik için).
+    Geçici klasör kapsayıcının kendi diskinde (/tmp): paylaşılan kit/ klasöründe Spark'ın _temporary klasörü
+    bilgisayar tarafında kalabiliyordu ve bir sonraki çalıştırma "Unable to clear output directory" ile düşüyordu
+    (kanit/kirilma-deneyi-bellek-*.txt)."""
+    gecici = f"/tmp/_csv_{ad}_{os.getpid()}"
     df.coalesce(1).write.mode("overwrite").option("header", True).csv("file://" + gecici)
     os.makedirs(CIKTI, exist_ok=True)
-    shutil.move(glob.glob(f"{gecici}/part-*.csv")[0], f"{CIKTI}/{ad}.csv")
-    shutil.rmtree(gecici)
+    shutil.copyfile(glob.glob(f"{gecici}/part-*.csv")[0], f"{CIKTI}/{ad}.csv")
+    shutil.rmtree(gecici, ignore_errors=True)
 
 
 csv_yaz(spark.read.format("delta").load(TOPLU1), "toplu1")

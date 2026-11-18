@@ -1,0 +1,31 @@
+KIRILMA DENEYİ: aynı anda iki Spark işi (toplu iş + akış işi)
+== 1) toplu iş tek başına ==
+23:54:17 başladı
+  toplu iş: çıkış kodu 0, duvar saati 212 sn, işin kendi sayacı: toplam süre: 198.8 s
+    bsm461-araclar: en yüksek 0.07 GiB
+    bsm461-grafana: en yüksek 0.22 GiB
+    bsm461-kafka: en yüksek 0.53 GiB
+    bsm461-s3: en yüksek 1.24 GiB
+    bsm461-spark: en yüksek 1.83 GiB
+    bsm461-timescaledb: en yüksek 0.02 GiB
+    bütün kapsayıcılar toplamı, en yüksek an: 3.53 GiB / 4,786 GiB
+== 2) akış işi (--hiz 50) çalışırken toplu iş ==
+23:59:11 toplu iş başladı (akış işi açık)
+  toplu iş: çıkış kodu 1, duvar saati 386 sn, işin kendi sayacı: 
+00:05:37 toplu iş bitti
+  akış işi hâlâ çalışıyor mu? evet
+    bsm461-araclar: en yüksek 0.06 GiB
+    bsm461-grafana: en yüksek 0.18 GiB
+    bsm461-kafka: en yüksek 0.47 GiB
+    bsm461-s3: en yüksek 1.24 GiB
+    bsm461-spark: en yüksek 2.48 GiB
+    bsm461-timescaledb: en yüksek 0.04 GiB
+    bütün kapsayıcılar toplamı, en yüksek an: 4.02 GiB / 4,786 GiB
+  spark kapsayıcısı OOM ile öldürüldü mü? false, yeniden başlama sayısı 0
+  akış yığın süresi toplu işten önce: 5 yığın, ortalama 2.2 sn, en uzun 2.9 sn
+  akış yığın süresi toplu iş sürerken: 21 yığın, ortalama 13.7 sn, en uzun 29.4 sn
+== Kafka ile karşılaştırma ==
+Kafka mesajı: 35,306 · sensor_id/zaman dolu: 35,272 · tekrarsız: 35,216 · tekrar: 56 · 5 sn'den geç varan: 0
+OLCUM|2026-11-18|z11_bellek_kafka_mesaj|35306|mesaj|konu akis-bellek, toplu okuma|1|gecerli 35272, tekrarsiz 35216, gec(>5s) 0
+[deney_bellek] sayılan olay: 35,216 · sayıma girmeyen: 0 (%0.000)
+OLCUM|2026-11-18|z11_bellek_deney_bellek_sayima_girmeyen|0|olay|tekrarsiz Kafka olayi (35216) - tablodaki olay_sayisi toplami (35216)|1|oran %0.000

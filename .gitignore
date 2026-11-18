@@ -34,3 +34,6 @@ data/
 # deney günlükleri (ham, büyük)
 analiz/cikti/*.log
 analiz/cikti/*uretici*.txt
+# üretilen HTML (PDF ile birlikte betikten çıkıyor)
+rapor/*.html
+sunum/*.html

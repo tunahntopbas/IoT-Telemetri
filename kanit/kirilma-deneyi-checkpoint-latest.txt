@@ -1,0 +1,16 @@
+KIRILMA DENEYİ: checkpoint kaybı, yeniden başlatmada --baslangic latest — konu akis-ckpt-latest, tablo deney_ckpt_latest
+23:36:46 akış işi çalışıyor; üretici başlıyor (--hiz 50 --sure 240 --gec-orani 0)
+23:38:16 akış işi durduruldu; son yığın: {"sorgu": "deney_ckpt_latest_db", "batch": 9, "zaman": "2026-11-17T23:38:10.011Z
+  tablodaki olay toplamı: 4013
+23:38:16 checkpoint klasörü yedeğe alındı (veri/checkpoint/deney_ckpt_latest-db → veri/checkpoint/deney_ckpt_latest-db.yedek), 30 sn bekleniyor
+23:38:46 iş checkpoint'siz başlatılıyor: --baslangic latest
+23:40:47 üretici bitti: ✓ toplam 11.665 olay
+  ilk iş Kafka'da 4,022 ofsete kadar işlemişti; checkpoint'siz iş 6,311 ofsetinden başladı (ilk yığın 0 olay): arada kalan 2,289 mesaj hiç okunmadı
+== Kafka ile karşılaştırma ==
+Kafka mesajı: 11,689 · sensor_id/zaman dolu: 11,682 · tekrarsız: 11,658 · tekrar: 24 · 5 sn'den geç varan: 0
+OLCUM|2026-11-17|z11_checkpoint_latest_kafka_mesaj|11689|mesaj|konu akis-ckpt-latest, toplu okuma|1|gecerli 11682, tekrarsiz 11658, gec(>5s) 0
+[deney_ckpt_latest] sayılan olay: 9,102 · sayıma girmeyen: 2,556 (%21.925)
+OLCUM|2026-11-17|z11_checkpoint_latest_deney_ckpt_latest_sayima_girmeyen|2556|olay|tekrarsiz Kafka olayi (11658) - tablodaki olay_sayisi toplami (9102)|1|oran %21.925
+  pencere karşılaştırması: 989 pencere · eksik sayılan pencere 199 (2556 olay) · fazla sayılan pencere 0 (0 olay)
+OLCUM|2026-11-17|z11_checkpoint_latest_deney_ckpt_latest_pencere_eksik_fazla|eksik 2556 / fazla 0|olay|sensor x 1 dk pencere bazinda tablo ile Kafka'dan hesaplanan dogru deger|1|989 pencere
+23:41:55 özgün checkpoint geri kondu (veri/checkpoint/deney_ckpt_latest-db)
