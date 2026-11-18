@@ -12,7 +12,7 @@
 | Mesaj anahtarı (`sensor_id`) | 10 | bayt | ölçüm, `olcumler.csv` satırı `olay_anahtar_bayt_ortalama` |
 | Bir günün saniye sayısı | 86.400 | s | sabit |
 
-Hesaplarda 142,58 bayt kullanıldı. Kafka'nın kayıt başlığı, anahtar ve sıkıştırma etkisi bu sayıya dahil değil. Kafka'daki gerçek disk kullanımı Z8'de ayrıca ölçülecek.
+Hesaplarda 142,58 bayt kullanıldı. Kafka'nın kayıt başlığı, anahtar ve sıkıştırma etkisi bu sayıya dahil değil. Kafka'nın diskte kapladığı yeri ayrıca ölçmedik: Kafka'da olaylar 7 gün tutuluyor (`retention.ms`), 1095 günlük saklama S3'te. Disk hesabını belirleyen S3 tarafı.
 
 ## Ham veri hacmi (ortalama hızla)
 
@@ -50,21 +50,20 @@ Ham veriyi zstd'li Parquet olarak tutmak 3 yıllık hacmi yaklaşık 27 TB'tan 2
 | Olay/s | 2.000 | 4.000 |
 | Veri hızı | 285,2 KB/s (2,28 Mbit/s) | 570,3 KB/s (4,56 Mbit/s) |
 
-Not: Kitin üreticisi `iot` şablonunda olayları günün saatlerine eşit dağıtıyor (`SAAT_AGIRLIK["iot"] = [1] * 24`). Yani kartın "tepe yük" koşulunu üretilen veri kendisi göstermiyor. Tepe yükü `--hiz` ile ortalamanın 2 katı hızla ayrı bir deneyde kendimiz oluşturacağız (Z11).
+Not: Kitin üreticisi `iot` şablonunda olayları günün saatlerine eşit dağıtıyor (`SAAT_AGIRLIK["iot"] = [1] * 24`). Yani kartın "tepe yük" koşulunu üretilen veri kendisi göstermiyor. Tepe yükü `--hiz` ile ayrı bir deneyde kendimiz oluşturduk; sonuç bölüm 11'de.
 
 ## Tek makine mi, dağıtık mı?
 
 - Depolama: 1095 günde 26,98 TB ham JSON birikiyor. Bizim makinenin diski 245 GB (`df -H /`, 17.11.2026). Bu kadar disk ham verinin yaklaşık 10 gününü tutar (245 GB ÷ 24,64 GB/gün ≈ 9,9 gün). Ölçtüğümüz en iyi sıkıştırma (zstd'li Parquet, 12,12 kat) ile bile 3 yıl 2,23 TB ediyor ve 245 GB'a sığmıyor; bunun için 110 katın üstünde bir sıkıştırma gerekirdi. Bu yüzden ham veri için dağıtık nesne deposu (S3 uyumlu) gerekli.
-- Akış: Ortalama 285 KB/s, tepe 570 KB/s veri hızı küçük bir hız. Bu hızın tek makinede işlenip işlenemeyeceğini Z11'deki tepe yük deneyinde ölçeceğiz. Ama tek makine olsa bile dayanıklılık için Kafka'nın en az 3 düğümde kopyalanması gerekiyor (kitte tek düğüm, tek kopya). Yani dağıtıklık burada hızdan çok kopyalama gereği.
+- Akış: Ortalama 285 KB/s, tepe 570 KB/s veri hızı küçük bir hız. Tepe yük deneyinde (bölüm 11) akış işi 8.000 olay/s istenen hızda kayıpsız çalıştı (sayıma girmeyen olay 0). Checkpoint yerel diskteyken ortalama işleme hızı 15.752 olay/s ölçüldü. Yani bu hız tek makinede işleniyor. Ama tek makine olsa bile dayanıklılık için Kafka'nın en az 3 düğümde kopyalanması gerekiyor (kitte tek düğüm, tek kopya). Yani dağıtıklık burada hızdan çok kopyalama gereği.
 
 ## İlk hangi bileşen tıkanır?
 
-Ölçülecek. Adaylar ve neden aday oldukları:
-- Spark akış işi: Kitin README'sindeki ölçüme göre yük altında en çok belleği Spark kullanıyor (2,6 GB). Bizim Docker'a ayrılan bellek 4,786 GiB (`docker info`). Tepe yükte mikro yığın süresi 30 sn tetikleme aralığını aşarsa akış geri kalır.
-- Üretici: Tek Python süreci. `--hiz 100` ile 20 sn'de 1930 olay gönderdi (`olcumler.csv`), ama 2.000 ve 4.000 olay/s'de ölçmedik.
-- Kafka: Tek düğüm, 3 bölüm. Bölüm sayısı tüketici paralelliğini sınırlıyor.
-
-Deney planı: üreticiyi 2.000 ve 4.000 olay/s ile çalıştırıp akış işinin Spark UI'daki "Input Rate" ve "Process Rate" değerlerini, mikro yığın sürelerini ve tüketici gecikmesini (consumer lag) kaydetmek. Sonuçlar `olcumler.csv`'ye yazılacak.
+Tepe yük deneyinde (bölüm 11) ilk tıkanan şey hız değil, uyarı gecikmesi oldu:
+- Akış checkpoint'i S3'teyken: yığın başına ~10 sn checkpoint yazımı yüzünden uyarı gecikmesinin üst sınırı 2.000 olay/s'de bile 37,5 sn'ye çıktı ve 30 sn'lik sınırı aştı. Checkpoint'i yerel diske alınca 8.000 olay/s'de en fazla 16,1 sn oldu (bölüm 8.3).
+- Spark akış işi ile toplu iş aynı 8 çekirdeği paylaşınca: toplu iş sürerken akış yığınları ortalama 3,0 sn'den 13,8 sn'ye, en uzunu 36,5 sn'ye çıktı (bölüm 11). Bellek taşmadı (toplam en fazla 4,02 GiB, OOM 0).
+- Üretici: Tek Python süreci bu makinede en fazla ~7.780 olay/s gönderebildi (`--hiz 8000` istendi). Kartın tepe yükü 4.000 olay/s bunun altında, ama 10x için üretici de tek süreç olarak yetmez.
+- Kafka: Tek düğüm, 8 bölüm (bölüm 8.1). Ölçtüğümüz hızlarda Kafka tarafında tıkanma görmedik.
 
 ## 10x ve 100x
 
@@ -76,6 +75,6 @@ Deney planı: üreticiyi 2.000 ve 4.000 olay/s ile çalıştırıp akış işini
 
 (Hepsi hesap: olay/s × 142,58 bayt; günlük için × 86.400; toplam için × 1.095. MB = 10⁶ bayt, PB = 10¹⁵ bayt.)
 
-Ölçek büyüyünce ne değişir? Bunları tepe yük deneyinden sonra ölçümle destekleyeceğiz:
-- 10x'te: Kafka bölüm sayısı tepe hıza göre yeniden hesaplanmalı (Z8). Spark akış işi tek makinede kalabilir mi, ölçülecek.
+Ölçek büyüyünce ne değişir?
+- 10x'te: Tepe 40.000 olay/s. Tek düğümlü Kafka'mızın aldığını gösterdiğimiz hız en az 18.000 olay/s (bölüm 8.1); 40.000 için bunu ayrıca göstermedik. Kafka birden çok broker'a, bölüm sayısı da tepe hıza göre yeniden hesaplanmalı. Akış işinin tek makinede ölçtüğümüz en yüksek ortalama hızı 15.752 olay/s, yani 10x'in tepesi tek makinenin ölçtüğümüz kapasitesinin üstünde. Akış işi birden çok yürütücüye dağıtılmalı. Üretici de tek süreç olarak (~7.780 olay/s) yetmez.
 - 100x'te: 3 yılda petabayt düzeyine çıkılıyor. Ham JSON'u saklamak yerine sıkıştırılmış Parquet/Delta'ya geçmek ve eski veriyi daha ucuz depolama sınıfına taşımak zorunlu hale gelir. Akış işi çok düğümlü bir kümeye dağıtılmalı.

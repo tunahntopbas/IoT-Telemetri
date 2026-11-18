@@ -33,7 +33,7 @@ Kafka'da mesaj anahtarı `sensor_id`. Üreticimiz `confluent-kafka` (librdkafka 
 - 3 bölümlü `olcum-bayt` konusu: 1.934 mesaj, 743 / 637 / 554 → oran 1,15 (bölüm 10'daki ölçüm).
 - 8 bölümle elle açılan `bolum-deneme-8` konusu (`--hiz 500 --sure 20`, 9.773 olay, Kafka'da 9.793 mesaj): 1.256 / 1.264 / 1.103 / 1.223 / 1.184 / 1.207 / 1.255 / 1.301 → oran 1,063 (`z3_kafka_8bolum_dagilim`).
 
-Asıl `sensorler` konusunun bölüm sayısını kartın hızına göre akış hattında (bölüm 8, Z8) hesaplayacağız. O konu üreticinin otomatik açtığı 3 bölümle duruyor; silinip doğru bölüm sayısıyla yeniden açılacak. Sıra garantisi Kafka'da yalnızca bölüm içinde geçerli. Anahtar `sensor_id` olduğu için tek bir sensörün mesajları hep aynı bölüme gidiyor ve kendi aralarında sıralı kalıyor.
+Asıl `sensorler` konusunun bölüm sayısı kartın hızına göre akış hattında hesaplandı. Konu ilk başta üreticinin otomatik açtığı 3 bölümle duruyordu; silinip 8 bölümle yeniden açıldı (bölüm 8.1). Sıra garantisi Kafka'da yalnızca bölüm içinde geçerli. Anahtar `sensor_id` olduğu için tek bir sensörün mesajları hep aynı bölüme gidiyor ve kendi aralarında sıralı kalıyor.
 
 ## 6.4 Çoğaltma
 
@@ -41,7 +41,7 @@ Asıl `sensorler` konusunun bölüm sayısını kartın hızına göre akış ha
 |---|---|---|---|
 | Kafka | 1 (`KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1`, konular da 1) | 3, `min.insync.replicas=2` | Bir broker düşünce veri kaybolmamalı ve yazma durmamalı. 3 kopyada biri giderse hâlâ 2 kopya kalıyor ve `acks=all` ile yazma sürebiliyor. |
 | S3 (SeaweedFS) | 1 (günlükte `replicaPlacement:000`) | Çoğaltmalı ya da silme kodlu depo (ör. 3 kopya ya da eşdeğeri) | Ham veri 1095 gün saklanacak. Tek disk bu sürede bozulabilir ve ham veri yeniden üretilemez. |
-| Servis deposu (PostgreSQL + TimescaleDB) | henüz kurulmadı | 1 birincil + en az 1 eşzamanlı yedek | Pano ve uyarılar bu depodan okunuyor; birincil düşerse yedek devralmalı. |
+| Servis deposu (PostgreSQL + TimescaleDB) | 1 (tek düğüm) | 1 birincil + en az 1 eşzamanlı yedek | Pano ve uyarılar bu depodan okunuyor; birincil düşerse yedek devralmalı. |
 
 ## 6.5 Ağ bölünmesi: C mi A mı? (CAP ve PACELC)
 
@@ -53,7 +53,7 @@ PACELC sınıflandırması Abadi'nin [1] tanımına göre yapıldı.
 | S3 uyumlu nesne deposu | Kurulum türüne bağlı; kitteki tek düğümde bölünme düğümün tamamen erişilemez olması demek | — | AWS S3 2020'den beri yazdıktan sonra okumada güçlü tutarlılık sağlıyor [2]. Kendi kurduğumuz bir depoda bu ayrıca doğrulanmalı. |
 | PostgreSQL + TimescaleDB (eşzamanlı yedekli) | C: yedeğe ulaşılamazsa onay bekleyen yazmalar durur | C: her yazma yedeğin onayını bekler | Uyarıların tutarlı olması, birkaç saniyelik yazma beklemesinden daha önemli. Pano okuması yedekten de yapılabilir. |
 
-PACELC sınıfı olarak üçünü de PC/EC kabul ediyoruz. Bu sınıflandırma tasarım kararımız; Kafka için kırılma deneyinde (`docker compose stop kafka`, Z11) üreticinin davranışını ölçeceğiz.
+PACELC sınıfı olarak üçünü de PC/EC kabul ediyoruz. Bu sınıflandırma tasarım kararımız. Kafka için kırılma deneyinde (`docker compose stop kafka`, bölüm 11) üretici Kafka kapalıyken olayları bekletti, Kafka dönünce gönderdi: gönderilen 29.304 olayın hepsi Kafka'ya ulaştı.
 
 ## 6.6 Tekrar eden olaylar sonucu değiştiriyor mu? (idempotentlik)
 
@@ -64,4 +64,4 @@ PACELC sınıfı olarak üçünü de PC/EC kabul ediyoruz. Bu sınıflandırma t
 | Titreşim > 1,0 kayıt sayısı | 12.076 | 12.054 | 22 | `z3_tekrar_etkisi_anomali_sayisi` |
 | Sensör başına olay sayısı, en çok etkilenen | 15.586 | 15.535 (`sensor-149`) | 51 olay (%0,33) | `z3_tekrar_etkisi_sensor_sayim_en_fazla` |
 
-Ortalamalar tekrarlardan neredeyse etkilenmiyor, çünkü tekrar eden olay da aynı değeri taşıyor. Sayım soruları ise doğrudan etkileniyor. Anomali sayısı ve sensör başına olay sayısı tekrarlar kadar şişiyor. Toplu 2'de kayıp oranı "gelen ÷ beklenen" ile hesaplandığı için tekrarlar kaybı olduğundan küçük gösterir. Bir sensörde 51 olaylık fark %0,33 kayıp oranı demek; bu da kartın %1'lik kayıp sınırının üçte biri. Bu yüzden toplu hatta tekrarları bütün alanlar üzerinden ayıklıyoruz. Bir günü yeniden işlerken de `replaceWhere` kullanıyoruz (bölüm 5.3); iş iki kez çalışsa da sonuç değişmiyor. Akışta aynı sorun Z8'de ele alınacak.
+Ortalamalar tekrarlardan neredeyse etkilenmiyor, çünkü tekrar eden olay da aynı değeri taşıyor. Sayım soruları ise doğrudan etkileniyor. Anomali sayısı ve sensör başına olay sayısı tekrarlar kadar şişiyor. Toplu 2'de kayıp oranı "gelen ÷ beklenen" ile hesaplandığı için tekrarlar kaybı olduğundan küçük gösterir. Bir sensörde 51 olaylık fark %0,33 kayıp oranı demek; bu da kartın %1'lik kayıp sınırının üçte biri. Bu yüzden toplu hatta tekrarları bütün alanlar üzerinden ayıklıyoruz. Bir günü yeniden işlerken de `replaceWhere` kullanıyoruz (bölüm 5.3); iş iki kez çalışsa da sonuç değişmiyor. Akışta aynı sorunu `dropDuplicates` ve watermark ile çözüyoruz (bölüm 8.3).
