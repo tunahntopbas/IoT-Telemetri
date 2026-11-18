@@ -231,3 +231,6 @@ tarih,olcum,deger,birim,yontem,tekrar,not
 2026-11-17,z11_db_durdu_kafka_mesaj,14629,mesaj,"konu akis-dbkes, toplu okuma",1,"gecerli 14615, tekrarsiz 14593, gec(>5s) 0"
 2026-11-17,z11_db_durdu_deney_dbkes_sayima_girmeyen,0,olay,tekrarsiz Kafka olayi (14593) - tablodaki olay_sayisi toplami (14593),1,oran %0.000
 2026-11-17,z11_db_durdu_deney_dbkes_pencere_eksik_fazla,eksik 0 / fazla 0,olay,sensor x 1 dk pencere bazinda tablo ile Kafka'dan hesaplanan dogru deger,1,1188 pencere
+2026-11-18,z11_kafka_kalicilik_sonra,242,mesaj,"KAFKA_LOG_DIRS eklendikten sonra: docker compose rm -sf kafka + up -d, kafka-get-offsets",1,"once 242, sonra 242; duzeltmeden once down sonrasi konu listesi bostu"
+2026-11-18,z11_sifirdan_akis_olay,4357,olay,"sifirdan calistirma testi: konu 8 bolumle acildiktan sonra 90 s uretici (4359 olay), son_varis son 5 dk",1,"487 pencere; Grafana Akis 1 sorgusu 200, 9 sensor"
+2026-11-18,z11_sifirdan_toplu_is,128.8,saniye,"sifirdan calistirma testi: toplu_is.py sayaci, temiz birimler",1,Delta yazma 51.0 s; servis_yukle sensor_dakika 2106255 satir 80.1 s

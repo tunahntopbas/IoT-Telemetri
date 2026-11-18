@@ -8,24 +8,54 @@ Bu depo, ders kitinin (`sumeyyekaynak/bsm461-proje-kit`) bir kopyasıdır. Kitin
 |---|---|---|---|---|
 | `docker-compose.yml` | `s3` servisinin `healthcheck` komutu | `wget ... http://localhost:9333/cluster/status` | `wget ... http://127.0.0.1:9333/cluster/status` | Kapsayıcıdaki `wget`, `localhost` adını IPv6 `::1` adresine çözüyor; SeaweedFS ise yalnızca IPv4 dinliyor. Bu yüzden Apple M1'de `s3` kapsayıcısı sürekli `unhealthy` kalıyor, ona bağlı `spark`, `araclar` ve `s3-kur` hiç başlamıyordu. |
 | `araclar/Dockerfile` | `pip install` listesi | — | `matplotlib==3.9.2` eklendi | `analiz/grafikler.py` grafikleri araclar kapsayıcısında çiziyor. Değişiklikten sonra imaj bir kez yeniden kurulmalı: `docker compose build araclar && docker compose up -d araclar`. |
+| `docker-compose.yml` | `kafka` servisinin ortam değişkenleri | `KAFKA_LOG_DIRS` yok | `KAFKA_LOG_DIRS: /var/lib/kafka/data` | Birim `/var/lib/kafka/data`'ya bağlıydı ama Kafka imajı veriyi varsayılan olarak kapsayıcının içindeki `/tmp/kraft-combined-logs`'a yazıyor. `docker compose down` (`-v` olmadan) bütün konuları siliyordu (`kanit/kirilma-deneyi-kafka-kalicilik.txt`). |
 | `docker-compose.yml` | yeni `servis-ts` profili | — | `timescaledb` (PostgreSQL 16 + TimescaleDB 2.17, port 5433) ve `grafana` (11.3, port 3000) servisleri, `ts-veri` ve `grafana-veri` birimleri | Servis deposu ve pano olarak bunları seçtik (rapor bölüm 9). 5432 yerine 5433: bilgisayarda başka bir PostgreSQL 5432'yi kullanıyor. Bellek sınırı 512 MB ve 256 MB. |
 | `spark-defaults.conf` | `spark.jars.packages` | Kafka ve Delta paketleri | `org.postgresql:postgresql:42.7.4` eklendi | Akış işi sonuçları JDBC ile TimescaleDB'ye yazıyor. |
 | `is/akis_iskelet.py` | bütün dosya | iskelet | gerçek akış işi | Kafka → watermark → tekrar ayıklama → 1 dk pencere → TimescaleDB upsert (rapor bölüm 8). Kitteki `--sablon` seçeneği duruyor. |
 
-### Bizim hattımızı çalıştırmak
+### Bizim hattımızı sıfırdan çalıştırmak
+
+Gerekenler: Docker Desktop (Docker'a en az 5 GB bellek), git, 20 GB boş disk. Komutlar depo klasöründe, sırayla çalıştırılır. Süreler bizim makinemizde (Apple M1, 8 GB RAM) ölçüldü; ilk seferde imaj ve kütüphane indirmesi eklenir.
 
 ```bash
-docker compose up -d                                   # çekirdek kit
-docker compose --profile servis-ts up -d               # TimescaleDB + Grafana (şema ilk açılışta kurulur)
+# 0) Depoyu indirin ve klasöre girin
+git clone https://github.com/tunahntopbas/IoT-Telemetri.git
+cd IoT-Telemetri
+
+# 1) Çekirdek kit: Kafka, S3, Spark, araçlar. Sonra doğrulama (bölüm 2)
+docker compose up -d
+./dogrula.sh
+./dogrula.sh --tam
+
+# 2) Servis deposu ve pano: TimescaleDB + Grafana (şema ilk açılışta kendiliğinden kurulur)
+docker compose --profile servis-ts up -d
+
+# 3) Toplu veri: 3 milyon olay, 14 gün (~40 sn)
 docker compose exec araclar python araclar/uretici.py --grup G221210024 --sablon iot --toplu 3000000 --gun 14
-docker compose exec spark spark-submit is/toplu_is.py           # toplu hat → Delta (s3a://tablolar/iot)
-docker compose exec spark spark-submit is/servis_yukle.py       # toplu sonuçlar ve geçmiş → TimescaleDB
-docker compose exec spark spark-submit is/akis_iskelet.py       # akış işi (açık kalır)
-docker compose exec araclar python araclar/uretici.py --grup G221210024 --sablon iot --hiz 50   # ayrı terminalde
+
+# 4) Toplu hat: temizleme, Delta tablosu, iki toplu soru (~2–4 dk)
+docker compose exec spark spark-submit is/toplu_is.py
+
+# 5) Toplu sonuçları ve geçmişi servis deposuna yükleme (~2 dk)
+docker compose exec spark spark-submit is/servis_yukle.py
+
+# 6) Kafka konusu: 8 bölüm, 7 gün saklama. Bu adım atlanırsa akış işi konu olmadığı için hata verir,
+#    üretici de konuyu kitin varsayılanı olan 3 bölümle açar (rapor bölüm 8.1)
+docker compose exec kafka /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --create --topic sensorler --partitions 8 --replication-factor 1 --config retention.ms=604800000
+
+# 7) Akış işi (açık kalır; Ctrl+C ile durur)
+docker compose exec spark spark-submit is/akis_iskelet.py
+
+# 8) Ayrı bir terminalde: sensör olayları (saniyede 50)
+docker compose exec araclar python araclar/uretici.py --grup G221210024 --sablon iot --hiz 50
 ```
 
-Pano: http://localhost:3000 (giriş gerekmez). Deney betikleri `analiz/` altında, çıktıları `kanit/` altında. Bütün ölçümler `kanit/olcumler.csv` dosyasında.
+Pano: http://localhost:3000 (giriş gerekmez). Akış panelleri üretici başladıktan ~30 sn sonra dolmaya başlar.
 
+Dikkat:
+- `docker-compose.yml` proje adını sabit veriyor (`name: bsm461`) ve kapsayıcı adları da sabit. Aynı bilgisayarda depo iki ayrı klasörde varsa ikisi **aynı veri birimlerini** kullanır. İkinci kopyayla deneme yapacaksanız önce ilkini `docker compose down` ile durdurun ve komutları `COMPOSE_PROJECT_NAME=bsm461test` ile çalıştırın. `docker compose down -v` birimleri, yani bütün verileri siler.
+- Toplu iş ile akış işini aynı anda çalıştırmayın: bu makinede akış yığınları 36 sn'ye kadar uzadı (rapor bölüm 11).
+- Deney betikleri `analiz/` altında, çıktıları `kanit/` altında. Bütün ölçümler `kanit/olcumler.csv` dosyasında. Rapor PDF'i: `python3 analiz/rapor_pdf.py` (Google Chrome gerekir).
 
 Bu kit, dönem projesinde kullanacağınız bütün altyapıyı **tek komutla** bilgisayarınızda ayağa kaldırır:
 olay günlüğü (Kafka), nesne deposu (S3), toplu ve akış işleme (Spark), arama (Elasticsearch), pano (Kibana)
@@ -80,8 +110,8 @@ aynı anda **tek** Spark işi çalıştırın ve kullanmadığınız Kibana'yı 
 ## 2. Kurulum — beş adım
 
 ```bash
-# 1) Kit klasörüne girin
-cd kit
+# 1) Kit klasörüne girin (bu depoda: git clone ile indirdiğiniz IoT-Telemetri klasörü)
+cd IoT-Telemetri
 
 # 2) Çekirdeği başlatın (ilk seferde imajlar indirilir: 5–15 dakika)
 docker compose up -d

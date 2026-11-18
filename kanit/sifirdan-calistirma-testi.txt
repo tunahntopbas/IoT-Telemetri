@@ -1,0 +1,31 @@
+00:26:23 servis-ts
+ Container bsm461-grafana Starting 
+ Container bsm461-grafana Started 
+00:26:30 timescaledb sağlıklı
+00:26:30 toplu veri
+  s3://ham/iot/tarih=2026-11-17/parca-6d0d63e9.jsonl  (214.295 olay)
+✓ toplam 3.000.000 satır S3'e yazıldı (içinde 5.839 tekrar) · grup G221210024
+00:27:12 toplu iş
+ham satır: 3,000,000
+Delta yazıldı: s3a://tablolar/iot   (51.0 s)
+toplam süre: 128.8 s
+00:29:32 servis yükle
+sensorler: 200 satır (3.4 s)
+toplu1: 168 satır (7.3 s)
+toplu2: 200 satır (3.1 s)
+sensor_dakika (geçmiş 2026-11-04 – 2026-11-17): 2,106,255 satır (80.1 s)
+00:31:24 akış işi
+✓ toplam 4.362 olay
+00:34:24 son 5 dakikadaki pencere ve olay: 2106255 pencere, 2992946 olay
+00:34:25 akış işi hata satırı: 12
+00:34:25 Grafana: {"database":"ok","version":"11.3.1","commit":"9225f4a1cbd1cfe8b69f1aa2d62309a9700533a5"}
+00:34:25 Grafana pano: IoT Telemetri — G221210024 6 panel
+00:34:25 Akış 1 sorgusu: durum 200 değer [[0]]
+00:35:02 README adımı: konu 8 bölümle açılıyor
+Created topic sensorler.
+00:35:04 akış işi
+00:35:22 ilk yığın bitti
+✓ toplam 4.359 olay
+00:37:22 akıştan yazılan (son_varis son 5 dk): 487 pencere, 4357 olay
+00:37:22 akış işi hata satırı: 0
+00:37:22 Akış 1 sorgusu (Grafana): durum 200 sensör 9

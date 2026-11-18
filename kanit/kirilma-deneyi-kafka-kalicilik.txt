@@ -1,0 +1,9 @@
+KİT HATASI: Kafka verisi docker compose down ile siliniyordu (18.11.2026)
+Önce: KAFKA_LOG_DIRS yok; birim /var/lib/kafka/data'ya bağlı ama imajın varsayılanı /tmp/kraft-combined-logs.
+Belirti: ana yığın 'docker compose down' (-v YOK) ile durdurulup başlatılınca konu listesi boştu (sensorler ve deney konuları gitti).
+
+== düzeltmeden sonra: konu + 5 sn olay, sonra kafka kapsayıcısı silinip yeniden oluşturuluyor ==
+önce:  242 mesaj
+ Container bsm461-kafka Removed 
+ Container bsm461-kafka Started 
+sonra: 242 mesaj · konular: sensorler 

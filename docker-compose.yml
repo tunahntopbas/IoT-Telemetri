@@ -35,6 +35,7 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_HEAP_OPTS: "-Xms512m -Xmx512m"
+      KAFKA_LOG_DIRS: /var/lib/kafka/data           # bu satır olmadan veri kapsayıcının /tmp'sine yazılıyor, down ile siliniyordu
       JAVA_TOOL_OPTIONS: "-XX:+IgnoreUnrecognizedVMOptions -XX:UseSVE=0"   # Apple M4 Mac çökmesine karşı (README)
     volumes:
       - kafka-veri:/var/lib/kafka/data
