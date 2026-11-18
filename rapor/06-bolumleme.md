@@ -45,10 +45,12 @@ Asıl `sensorler` konusunun bölüm sayısını kartın hızına göre akış ha
 
 ## 6.5 Ağ bölünmesi: C mi A mı? (CAP ve PACELC)
 
+PACELC sınıflandırması Abadi'nin [1] tanımına göre yapıldı.
+
 | Bileşen | Bölünmede (P) | Bölünme yokken (E) | Gerekçe |
 |---|---|---|---|
 | Kafka (`acks=all`, `min.insync.replicas=2`, `unclean.leader.election.enable=false`) | C: ISR 2'nin altına düşerse yazma reddedilir | C (L yerine): her yazma yeterli kopya onaylayınca tamamlanır, bu gecikmeyi artırır | Tutarlılık yerine erişilebilirlik isteseydik `acks=1` ve unclean leader election açık olurdu; bu da onaylanmış veri kaybı demek. |
-| S3 uyumlu nesne deposu | Kurulum türüne bağlı; kitteki tek düğümde bölünme düğümün tamamen erişilemez olması demek | — | AWS S3 2020'den beri yazdıktan sonra okumada güçlü tutarlılık sağlıyor. Kendi kurduğumuz bir depoda bu ayrıca doğrulanmalı. |
+| S3 uyumlu nesne deposu | Kurulum türüne bağlı; kitteki tek düğümde bölünme düğümün tamamen erişilemez olması demek | — | AWS S3 2020'den beri yazdıktan sonra okumada güçlü tutarlılık sağlıyor [2]. Kendi kurduğumuz bir depoda bu ayrıca doğrulanmalı. |
 | PostgreSQL + TimescaleDB (eşzamanlı yedekli) | C: yedeğe ulaşılamazsa onay bekleyen yazmalar durur | C: her yazma yedeğin onayını bekler | Uyarıların tutarlı olması, birkaç saniyelik yazma beklemesinden daha önemli. Pano okuması yedekten de yapılabilir. |
 
 PACELC sınıfı olarak üçünü de PC/EC kabul ediyoruz. Bu sınıflandırma tasarım kararımız; Kafka için kırılma deneyinde (`docker compose stop kafka`, Z11) üreticinin davranışını ölçeceğiz.

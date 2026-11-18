@@ -14,7 +14,7 @@ Bizim şablonumuzda sensör düzeyinde çarpıklık zayıf. 200.000 satırda sen
 
 Çarpıklık bölüm düzeyinde ortaya çıkıyor. Yalnızca 200 farklı anahtar olduğu için anahtarlar bölümlere eşit dağılmıyor:
 - Kafka'da 3 bölümlü `olcum-bayt` konusuna gelen 1934 mesaj bölümlere 743 / 637 / 554 dağıldı (en dolu / ortalama = 1,15).
-- Aynı 200.000 satırı DuckDB'nin `hash(sensor_id) % 8` ifadesiyle 8 bölüme ayırınca en dolu bölümde 32.783, en boşta 17.972 satır çıktı (en dolu / ortalama = 1,31). DuckDB'nin hash fonksiyonu Kafka'nınkiyle (murmur2) aynı değil. Z3'te Kafka ve Spark'ın kendi bölümleyicisiyle yeniden ölçülecek.
+- Aynı 200.000 satırı DuckDB'nin `hash(sensor_id) % 8` ifadesiyle 8 bölüme ayırınca en dolu bölümde 32.783, en boşta 17.972 satır çıktı (en dolu / ortalama = 1,31). DuckDB'nin hash fonksiyonu Kafka'nınkiyle (murmur2 [3]) aynı değil. Z3'te Kafka ve Spark'ın kendi bölümleyicisiyle yeniden ölçülecek.
 
 En dolu bölüme düşen bir mesaj (Kafka bölüm 2):
 

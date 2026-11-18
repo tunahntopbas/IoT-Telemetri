@@ -23,7 +23,7 @@ Sorguların hepsi iki biçimden biri: "bir sensörün bir zaman aralığı" ya d
 
 | Seçenek | Neden seçmedik / seçtik |
 |---|---|
-| **PostgreSQL + TimescaleDB** (seçilen) | Tablo zamana göre parçalara (chunk) bölünüyor. Zaman aralıklı sorgu yalnızca ilgili parçayı okuyor: q2'de 15 parçanın biri okundu. Upsert (`ON CONFLICT`) hazır geliyor; akışın tekrar yazımlarını zararsız kılan da bu. Görünüm, join ve `time_bucket` SQL ile yazılıyor. Grafana'nın PostgreSQL veri kaynağı hazır. |
+| **PostgreSQL + TimescaleDB** (seçilen) | Tablo zamana göre parçalara (chunk) bölünüyor [6]. Zaman aralıklı sorgu yalnızca ilgili parçayı okuyor: q2'de 15 parçanın biri okundu. Upsert (`ON CONFLICT`) hazır geliyor; akışın tekrar yazımlarını zararsız kılan da bu. Görünüm, join ve `time_bucket` SQL ile yazılıyor. Grafana'nın PostgreSQL veri kaynağı hazır. |
 | MongoDB | Sensör başına belge modeli q1/q2'ye uyar. Ama q3, q4 ve q6 bütün sensörleri gruplayan sorgular, boyut tablosuyla da join istiyorlar. Bunlar aggregation pipeline'a dönüşür. Upsert var ama zaman parçalama yok. |
 | Redis | "Son değer" ve "son varış" için çok hızlı. Ama 14 günlük geçmiş (q2) ve gruplama (q6) için ayrı bir depo gerekirdi. Bellekte 363 MB × büyüme demek. |
 | Cassandra | Yazma ölçeği için uygun: `(sensor_id, gün)` bölüm anahtarı q1/q2'ye uyar. Ama q3, q4 ve q6 bütün bölümleri tarar. Join yok. Tek düğümlü kurulumda getirisi yok. |

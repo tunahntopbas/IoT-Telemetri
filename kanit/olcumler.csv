@@ -150,3 +150,84 @@ tarih,olcum,deger,birim,yontem,tekrar,not
 2026-11-17,z8_uyari_gecikmesi_8000_ust_ortanca,28.7,saniye,"tepe_yuk_deneyi.sh, uretici --hiz 8000, tetik 10 s; batch_gunlugu yazilma(N)-max_varis(N-1)",8,"max 31.5 s, p95 31.5 s"
 2026-11-17,z11_tepe_kafka_mesaj,1236431,mesaj,"konu akis-tepe, toplu okuma",1,"gecerli 1235948, tekrarsiz 1233403, gec(>5s) 61372"
 2026-11-17,z11_tepe_deney_tepe_sayima_girmeyen,0,olay,tekrarsiz Kafka olayi (1233403) - tablodaki olay_sayisi toplami (1233403),1,oran %0.000
+2026-11-18,z1_hesap_kart_veri_hizi_ort,285160,bayt/s,hesap: 2000 olay/s x 142.58 bayt,1,"285.2 KB/s, 2.28 Mbit/s; tepe (2 kat) 570.3 KB/s, 4.56 Mbit/s, 0.57 MB/s"
+2026-11-18,z1_hesap_kart_gunluk_ham,24637824000,bayt,hesap: 2000 x 142.58 x 86400,1,24.64 GB/gun; 172.8 milyon olay/gun; 1095 gun 26.98 TB = 0.03 PB
+2026-11-18,z1_hesap_10x_veri_hizi_ort,2851600,bayt/s,hesap: 20000 olay/s x 142.58 bayt,1,"2851.6 KB/s, 22.81 Mbit/s; tepe (2 kat) 5703.2 KB/s, 45.63 Mbit/s, 5.70 MB/s"
+2026-11-18,z1_hesap_10x_gunluk_ham,246378240000,bayt,hesap: 20000 x 142.58 x 86400,1,246.38 GB/gun; 1728.0 milyon olay/gun; 1095 gun 269.78 TB = 0.27 PB
+2026-11-18,z1_hesap_100x_veri_hizi_ort,28516000,bayt/s,hesap: 200000 olay/s x 142.58 bayt,1,"28516.0 KB/s, 228.13 Mbit/s; tepe (2 kat) 57032.0 KB/s, 456.26 Mbit/s, 57.03 MB/s"
+2026-11-18,z1_hesap_100x_gunluk_ham,2463782400000,bayt,hesap: 200000 x 142.58 x 86400,1,2463.78 GB/gun; 17280.0 milyon olay/gun; 1095 gun 2697.84 TB = 2.70 PB
+2026-11-18,z1_gun_saniye,86400,saniye,sabit: 24 x 60 x 60,1,
+2026-11-18,z1_hesap_1095gun_sikistirmasiz,3736622891967,bayt,hesap: 1095 gunluk ham JSON / olculen oran 7.22,1,3.74 TB; gunluk 3.41 GB
+2026-11-18,z1_hesap_1095gun_snappy,2787026578512,bayt,hesap: 1095 gunluk ham JSON / olculen oran 9.68,1,2.79 TB; gunluk 2.55 GB
+2026-11-18,z1_hesap_1095gun_gzip,2292134008496,bayt,hesap: 1095 gunluk ham JSON / olculen oran 11.77,1,2.29 TB; gunluk 2.09 GB
+2026-11-18,z1_hesap_1095gun_zstd,2225942019802,bayt,hesap: 1095 gunluk ham JSON / olculen oran 12.12,1,2.23 TB; gunluk 2.03 GB
+2026-11-18,z1_disk_boyutu,245,GB,"df -H / (Apple M1), 17.11.2026",1,ham JSON ile 9.9 gun; zstd ile 121 gun; 3 yil icin gereken sikistirma 110 kat
+2026-11-18,z2_json_boyutu_mb,430.7,MB,"14 JSONL dosyasi (toplu 3.000.000 olay), S3 listelemesi",1,"z2_codec_* satirlarindaki JSON boyutu, 10^6 bayt"
+2026-11-18,z7_delta_v0_gun_2026_11_16,213843,satir,"delta_gecmis.py versionAsOf 0, tarih = 2026-11-16",1,kanit/delta-history.txt
+2026-11-18,z7_delta_v1_v4_gun_2026_11_16,213750,satir,"delta_gecmis.py versionAsOf 1..4, tarih = 2026-11-16",1,kanit/delta-history.txt
+2026-11-18,z3_ortalama_bolum_satiri,375000,satir,hesap: 3.000.000 / 8 bolum,1,
+2026-11-18,z3_sensor_id_saat_farkli_deger,4800,deger,hesap: 200 sensor x 24 saat,1,
+2026-11-18,z3_bolge_saat_grup_sayisi,168,grup,toplu1 sonucu satir sayisi (7 bolge x 24 saat),1,
+2026-11-18,z10_hash8_en_bos_bolum,17972,satir,"DuckDB hash(sensor_id) % 8, ilk 200.000 satirlik ornek",1,en dolu 32783; ornek daha sonra 3 milyonluk veriyle degisti
+2026-11-18,z10_gec_olay_ornek_gecikme,117.6,saniye,"Kafka CreateTime - olay_zamani, tek ornek (sensor-156)",1,en buyugu 118.7 s
+2026-11-18,z10_eksik_alan_toplam,377,kayit,toplu ornek: 182 kayitta alan yok + 195 kayitta null,1,%0.19
+2026-11-18,z5_boyut_tablosu_bayt,6421,bayt,s3://ham/boyut/iot/sensorler.csv boyutu,1,200 satir
+2026-11-18,z5_spark_ui_ilk_asama,410.7,MiB,Spark UI aşama özeti (kanit/spark-ui-2.png): okuma,1,"shuffle yazma 98.0 MiB; sort-merge koşusunda ek aşama 31 görev; görev başına 29.3 MiB, ~214240 kayit (3.000.000 / 14)"
+2026-11-18,z5_perf_broadcast_shuffle8_ortanca_8kosu,9.02,saniye,8 kosunun ortancasi (3 + 5 kosu),8,son 5 kosunun ortancasi 9.26
+2026-11-18,z5_perf_sortmerge_shuffle8_ortanca_8kosu,11.05,saniye,8 kosunun ortancasi (3 + 5 kosu),8,son 5 kosunun ortancasi 11.46
+2026-11-18,z5_perf_broadcast_shuffle200_ortanca_8kosu,10.01,saniye,8 kosunun ortancasi (3 + 5 kosu),8,son 5 kosunun ortancasi 10.32
+2026-11-18,z5_toplu1_en_serin_saat_ort,17.71,C,"toplu1.csv: bolge ortalamalarinin ortalamasi, saat 3",1,en sicak saat 15: 25.71 C
+2026-11-18,z5_toplu1_ort_sicaklik_dogu_anadolu,12.7,C,toplu1.csv: olay sayisiyla agirlikli ortalama,1,
+2026-11-18,z5_toplu1_ort_sicaklik_guneydogu,31.87,C,toplu1.csv: olay sayisiyla agirlikli ortalama,1,
+2026-11-18,z5_toplu1_anomali_saat21,1054,kayit,toplu1.csv: saat 21 anomali toplami,1,saat basina ortanca 383.5
+2026-11-18,z5_toplu2_kayip_13_kati,28.7-30.6,%,toplu2.csv: 13'un kati sensorler,1,15 sensor; en buyuk numara 195
+2026-11-18,z5_toplu2_kayip_23_kati,7.3-10.1,%,toplu2.csv: 23'un kati sensorler,1,8 sensor; en buyuk numara 184
+2026-11-18,z5_toplu2_diger_sensor,177,sensor,toplu2.csv: 13 ve 23'un kati olmayanlar,1,
+2026-11-18,z5_perf_broadcast_shuffle8_ortalama_8kosu,8.69,saniye,8 kosunun ortalamasi (3 + 5 kosu),8,
+2026-11-18,z5_perf_sortmerge_shuffle8_ortalama_8kosu,11.96,saniye,8 kosunun ortalamasi (3 + 5 kosu),8,
+2026-11-18,z5_perf_broadcast_shuffle200_ortalama_8kosu,9.45,saniye,8 kosunun ortalamasi (3 + 5 kosu),8,
+2026-11-18,z8_gec-kart_wm30_watermark_atilan,608,satir,Spark ilerleme raporu numRowsDroppedByWatermark toplami (iki durumlu operator),1,tekrar ayiklamadan once atilan kopyalar dahil
+2026-11-18,z8_gec-30_wm30_watermark_atilan,3380,satir,Spark ilerleme raporu numRowsDroppedByWatermark toplami (iki durumlu operator),1,tekrar ayiklamadan once atilan kopyalar dahil
+2026-11-18,z8_gec-50_wm30_watermark_atilan,5632,satir,Spark ilerleme raporu numRowsDroppedByWatermark toplami (iki durumlu operator),1,tekrar ayiklamadan once atilan kopyalar dahil
+2026-11-18,z8_gec-kart_uretici_gonderilen,14673,olay,uretici.py ciktisindaki toplam (tekrarlar haric),1,
+2026-11-18,z8_gec-30_uretici_gonderilen,14634,olay,uretici.py ciktisindaki toplam (tekrarlar haric),1,
+2026-11-18,z8_gec-50_uretici_gonderilen,14533,olay,uretici.py ciktisindaki toplam (tekrarlar haric),1,
+2026-11-18,z8_uretici_acksall_kosular,5.51 / 5.42 / 5.4,saniye,"uretici 97762 olay, 3 kosu (kanit/akis-uretici-ayarlari.txt)",3,
+2026-11-18,z8_uretici_acks1_kosular,5.47 / 5.37 / 5.38,saniye,"uretici 97762 olay, 3 kosu (kanit/akis-uretici-ayarlari.txt)",3,
+2026-11-18,z8_uretici_acks1-idk_kosular,5.46 / 5.35 / 5.4,saniye,"uretici 97762 olay, 3 kosu (kanit/akis-uretici-ayarlari.txt)",3,
+2026-11-18,z8_uretici_acks0_kosular,5.46 / 5.39 / 5.39,saniye,"uretici 97762 olay, 3 kosu (kanit/akis-uretici-ayarlari.txt)",3,
+2026-11-18,z8_uretici_3kosu_beklenen_mesaj,293286,mesaj,hesap: 3 x 97762,1,Kafka'da 293871; fark 585 mesaj uretecinin bilerek gonderdigi tekrar
+2026-11-18,z8_kafka_en_az_hiz,18000,olay/saniye,hesap: 97762 olay / 5.4 s,1,tepe yuk 4000 olay/s'nin 4.5 kati
+2026-11-18,z8_uyari_gecikmesi_alt_ortanca_tetik5_50,13.5,saniye,tepe_analiz.py yazilma(N)-max_varis(N),14,kanit/akis-tetik5.txt
+2026-11-18,z8_uyari_gecikmesi_alt_ortanca_tepe_2000,15.9,saniye,tepe_analiz.py yazilma(N)-max_varis(N),6,kanit/kirilma-deneyi-tepe.txt
+2026-11-18,z8_uyari_gecikmesi_alt_ortanca_yerel_8000,4.6,saniye,tepe_analiz.py yazilma(N)-max_varis(N),10,kanit/akis-checkpoint-yerel.txt
+2026-11-18,z8_yeniden_baslatma_yigin_sayisi,31,yigin,"batch_gunlugu, deney_yeniden-db",1,"31 farkli batch_id, iki kez yazilan 0"
+2026-11-18,z8_cokme_yerel_batch8_satir,178,satir,cokme_deneyi.sh (yerel checkpoint) batch_gunlugu,1,yigin 8 iki kez yazildi: 178 ve 178 satir
+2026-11-18,z6_sensor_dakika_satir,2108396,satir,SELECT count(*) FROM sensor_dakika (kanit/servis-explain.txt),1,"hypertable 363 MB, 15 parca"
+2026-11-18,z8_tepe_8000_uretici_gonderilen,700153,olay,uretici --hiz 8000 --sure 90 ciktisi,1,~7780 olay/s; makinede uretecinin ulastigi en yuksek hiz
+2026-11-18,z11_db_durdu_hata_suresi,5,saniye,"kirilma_db.sh: timescaledb stop 23:24:46, akis isi hatasi 23:24:51",1,PSQLException: The connection attempt failed; is oldu
+2026-11-18,z11_db_durdu_pencere,1188,pencere,akis_dogrula.py --pencere,1,eksik 0 / fazla 0; 14593 olay
+2026-11-18,z11_db_durdu_grafana_sorgu,500,HTTP durum,"Grafana /api/ds/query, veritabani kapali",1,db query error: failed to connect to server; /api/health database ok
+2026-11-18,z11_checkpoint_earliest_ilk_yigin,6323,olay,kirilma_checkpoint.sh earliest: checkpointsiz isin ilk yigini,1,ilk is 4133 ofsete kadar islemisti; 956 pencere dogru
+2026-11-18,z11_checkpoint_latest_atlanan_mesaj,2289,mesaj,kirilma_checkpoint.sh latest: yeni isin baslangic ofseti 6311 - ilk isin son ofseti 4022,1,
+2026-11-18,z11_checkpoint_latest_kayip_orani,21.9,%,akis_dogrula.py: 2556 / 11658,1,199 pencere eksik; okunmayan mesajdan 267 fazla (pencere ezilmesi)
+2026-11-18,z11_bellek_toplu_tek_basina,200.7,saniye,"kirilma_bellek.sh kosu 3, toplu_is.py sayaci (zstd)",3,kosu 2: 198.8 s; kosu 1 (snappy): 143.0 s
+2026-11-18,z11_bellek_toplu_akisla_birlikte,396.0,saniye,"kirilma_bellek.sh kosu 3, toplu_is.py sayaci",1,"kosu 1 ve 2 sonda CSV gecici klasoru hatasiyla dustu (bellek degil), duzeltildi"
+2026-11-18,z11_bellek_toplam_tepe,3.89-4.02,GiB,"docker stats 2 s'de bir, butun kapsayicilar toplami, 3 kosu",3,kosular: 3.98 / 4.02 / 3.89; tek basina toplu is 3.12-3.53 GiB; spark kapsayicisi en cok 2.67 GiB
+2026-11-18,z11_bellek_oom,0,olay,"docker inspect OOMKilled, RestartCount",3,"OOMKilled false, yeniden baslama 0"
+2026-11-18,z11_bellek_akis_yigin_once,3.0,saniye,kosu 3: toplu isten once akis yigin suresi ortalama,5,en uzun 3.9 s; kosu 1: 2.3 s
+2026-11-18,z11_bellek_akis_yigin_sirasinda,13.8,saniye,kosu 3: toplu is surerken akis yigin suresi ortalama,21,en uzun 36.5 s; kosu 1: 11.9 / 23.6 s; kosu 2: 13.7 / 29.4 s
+2026-11-18,z11_bellek_akis_olay,52701,olay,"akis_dogrula.py, 3 kosunun toplami (ayni konu)",1,sayima girmeyen 0
+2026-11-18,z8_tepe_uretici_en_yuksek_hiz,7780,olay/saniye,hesap: 700153 olay / 90 s,1,uretici --hiz 8000 istendi
+2026-11-18,z11_kafka_durdu_uretici_gonderilen,29304,olay,uretici.py ciktisi (kirilma_kafka.sh),1,hepsi Kafka'da
+2026-11-17,z11_bellek_kafka_mesaj,17653,mesaj,"konu akis-bellek, toplu okuma",1,"gecerli 17636, tekrarsiz 17608, gec(>5s) 0"
+2026-11-17,z11_bellek_deney_bellek_sayima_girmeyen,0,olay,tekrarsiz Kafka olayi (17608) - tablodaki olay_sayisi toplami (17608),1,oran %0.000
+2026-11-17,z11_checkpoint_earliest_kafka_mesaj,11696,mesaj,"konu akis-ckpt-earliest, toplu okuma",1,"gecerli 11691, tekrarsiz 11671, gec(>5s) 0"
+2026-11-17,z11_checkpoint_earliest_deney_ckpt_earliest_sayima_girmeyen,0,olay,tekrarsiz Kafka olayi (11671) - tablodaki olay_sayisi toplami (11671),1,oran %0.000
+2026-11-17,z11_checkpoint_earliest_deney_ckpt_earliest_pencere_eksik_fazla,eksik 0 / fazla 0,olay,sensor x 1 dk pencere bazinda tablo ile Kafka'dan hesaplanan dogru deger,1,956 pencere
+2026-11-17,z11_checkpoint_latest_kafka_mesaj,11689,mesaj,"konu akis-ckpt-latest, toplu okuma",1,"gecerli 11682, tekrarsiz 11658, gec(>5s) 0"
+2026-11-17,z11_checkpoint_latest_deney_ckpt_latest_sayima_girmeyen,2556,olay,tekrarsiz Kafka olayi (11658) - tablodaki olay_sayisi toplami (9102),1,oran %21.925
+2026-11-17,z11_checkpoint_latest_deney_ckpt_latest_pencere_eksik_fazla,eksik 2556 / fazla 0,olay,sensor x 1 dk pencere bazinda tablo ile Kafka'dan hesaplanan dogru deger,1,989 pencere
+2026-11-17,z11_db_durdu_kafka_mesaj,14629,mesaj,"konu akis-dbkes, toplu okuma",1,"gecerli 14615, tekrarsiz 14593, gec(>5s) 0"
+2026-11-17,z11_db_durdu_deney_dbkes_sayima_girmeyen,0,olay,tekrarsiz Kafka olayi (14593) - tablodaki olay_sayisi toplami (14593),1,oran %0.000
+2026-11-17,z11_db_durdu_deney_dbkes_pencere_eksik_fazla,eksik 0 / fazla 0,olay,sensor x 1 dk pencere bazinda tablo ile Kafka'dan hesaplanan dogru deger,1,1188 pencere

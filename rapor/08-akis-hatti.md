@@ -68,7 +68,7 @@ Kafka (sensorler, 8 bölüm)
 | Olayların %5'i en fazla 2 dk geç geliyor | Geç olayın sayılması için pencere en az 2 dk açık kalmalı → watermark ≥ 2 dk |
 | Sayıma girmeyen olay en fazla %1 | 30 sn'lik watermark %5'in büyük kısmını atar → sınır aşılır (ölçüm aşağıda) |
 
-Seçimimiz: 2 dakikalık watermark ve update modu birlikte. Update modu, pencere kapanmayı beklemeden her tetikte o ana kadarki sayıyı yazıyor. Yani anomali ilk göründüğü tetikte veritabanına gidiyor. Geç gelen olay da pencere 2 dk boyunca açık kaldığı için sonradan sayıma ekleniyor ve aynı satır upsert ile güncelleniyor. Bunun bedeli iki tane:
+Seçimimiz: 2 dakikalık watermark ve update modu birlikte [4]. Update modu, pencere kapanmayı beklemeden her tetikte o ana kadarki sayıyı yazıyor. Yani anomali ilk göründüğü tetikte veritabanına gidiyor. Geç gelen olay da pencere 2 dk boyunca açık kaldığı için sonradan sayıma ekleniyor ve aynı satır upsert ile güncelleniyor. Bunun bedeli iki tane:
 - Bir pencerenin sayısı 2 dakika boyunca kesin değil. Pano son dakikaları önce eksik gösterip sonra düzeltiyor. "Kesinleşmiş sayı" isteyen bir okuyucu (ör. S3'e append ile yazılan çıktı) sonucu ancak 2 dk + tetik süresi sonra görüyor.
 - Durum (state) 2 dakikalık pencereyi ve tekrar ayıklama anahtarlarını tutuyor. Yani watermark ne kadar uzunsa bellek de o kadar çok.
 
